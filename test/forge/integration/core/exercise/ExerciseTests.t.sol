@@ -97,6 +97,26 @@ contract ExerciseTests is BaseTest {
         );
     }
 
+    function test_runtimeSwapFeeUpdateChangesExerciseAccountingOnly()
+        external
+        __as(alice)
+        __deposit(depositAmount, alice)
+    {
+        uint256 unwindFeeBefore = corkPoolManager.unwindSwapFee(defaultPoolId);
+        _setSwapFee(defaultPoolId, 2.5 ether);
+        StateSnapshot memory before = _getStateSnapshot(alice, defaultPoolId);
+
+        (,, uint256 previewFee) = corkPoolManager.previewExercise(defaultPoolId, exerciseShares);
+        (,, uint256 actualFee) = corkPoolManager.exercise(defaultPoolId, exerciseShares, alice);
+        StateSnapshot memory after_ = _getStateSnapshot(alice, defaultPoolId);
+
+        assertGt(actualFee, 0);
+        assertEq(actualFee, previewFee);
+        assertEq(after_.treasuryCollateral - before.treasuryCollateral, actualFee);
+        assertEq(corkPoolManager.swapFee(defaultPoolId), 2.5 ether);
+        assertEq(corkPoolManager.unwindSwapFee(defaultPoolId), unwindFeeBefore);
+    }
+
     // ================================ Negative Tests Cases ================================ //
 
     function test_exercise_ShouldRevertIfNotEnoughLiquidityForFee() external __as(alice) __deposit(1 ether, alice) {

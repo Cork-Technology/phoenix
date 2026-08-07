@@ -2,7 +2,6 @@
 pragma solidity ^0.8.30;
 
 import {DefaultCorkController} from "contracts/core/DefaultCorkController.sol";
-import {IDefaultCorkController} from "contracts/interfaces/IDefaultCorkController.sol";
 import {IAccessControl} from "openzeppelin-contracts/contracts/access/IAccessControl.sol";
 import {BaseTest} from "test/forge/BaseTest.sol";
 
@@ -60,6 +59,17 @@ contract GrantRoleTest is BaseTest {
         defaultCorkController.grantRole(role, address(9));
         assertTrue(defaultCorkController.hasRole(role, address(9)));
         assertFalse(defaultCorkController.hasRole(role, poolCreator));
+    }
+
+    function test_GrantFeeManagerRoleEmitsMonitoringEvent() public {
+        bytes32 role = defaultCorkController.FEE_MANAGER_ROLE();
+        address newFeeManager = address(9);
+
+        vm.expectEmit(true, true, true, true, address(defaultCorkController));
+        emit IAccessControl.RoleGranted(role, newFeeManager, adminUserAddress);
+        defaultCorkController.grantRole(role, newFeeManager);
+
+        assertTrue(defaultCorkController.hasRole(role, newFeeManager));
     }
 
     //-----------------------------------------------------------------------------------------------------//

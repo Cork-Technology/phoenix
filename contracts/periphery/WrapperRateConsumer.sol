@@ -53,20 +53,20 @@ contract WrapperRateConsumer is IRateOracle {
     uint256 public immutable QUOTE_DECIMALS;
 
     /// @notice Constructor
-    /// @param _morphoOracle Address of oracle that's compatible with MorphoChainlinkOracleV2
-    /// @param _baseTokenDecimals Decimals of the base token (collateral in Morpho terms)
-    /// @param _quoteTokenDecimals Decimals of the quote token (loan in Morpho terms)
-    constructor(address _morphoOracle, uint256 _baseTokenDecimals, uint256 _quoteTokenDecimals) {
-        require(_morphoOracle != address(0), ZeroAddress());
+    /// @param morphoOracle Address of oracle that's compatible with MorphoChainlinkOracleV2
+    /// @param baseTokenDecimals Decimals of the base token (collateral in Morpho terms)
+    /// @param quoteTokenDecimals Decimals of the quote token (loan in Morpho terms)
+    constructor(address morphoOracle, uint256 baseTokenDecimals, uint256 quoteTokenDecimals) {
+        require(morphoOracle != address(0), ZeroAddress());
 
-        MORPHO_ORACLE = IMorphoChainlinkOracleV2(_morphoOracle);
+        MORPHO_ORACLE = IMorphoChainlinkOracleV2(morphoOracle);
 
         QUOTE_DECIMALS = address(MORPHO_ORACLE.QUOTE_VAULT()) != address(0)
             ? IERC4626(address(MORPHO_ORACLE.QUOTE_VAULT())).decimals()
-            : _quoteTokenDecimals;
+            : quoteTokenDecimals;
         BASE_DECIMALS = address(MORPHO_ORACLE.BASE_VAULT()) != address(0)
             ? IERC4626(address(MORPHO_ORACLE.BASE_VAULT())).decimals()
-            : _baseTokenDecimals;
+            : baseTokenDecimals;
 
         require(_rate() > 0, InvalidRate());
     }

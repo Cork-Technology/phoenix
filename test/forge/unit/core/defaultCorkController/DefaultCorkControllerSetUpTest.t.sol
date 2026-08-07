@@ -12,6 +12,7 @@ contract DefaultCorkControllerSetUpTest is BaseTest {
     function test_DefaultCorkControllerRolesVariables() public {
         // Assert the roles variables are correct
         assertEq(defaultCorkController.CONFIGURATOR_ROLE(), keccak256("CONFIGURATOR_ROLE"));
+        assertEq(defaultCorkController.FEE_MANAGER_ROLE(), keccak256("FEE_MANAGER_ROLE"));
         assertEq(defaultCorkController.PAUSER_ROLE(), keccak256("PAUSER_ROLE"));
         assertEq(defaultCorkController.POOL_CREATOR_ROLE(), keccak256("POOL_CREATOR_ROLE"));
 
@@ -49,6 +50,7 @@ contract DefaultCorkControllerSetUpTest is BaseTest {
         assertEq(defaultCorkController.hasRole(defaultCorkController.PAUSER_ROLE(), pauser), true);
         assertEq(defaultCorkController.hasRole(defaultCorkController.POOL_CREATOR_ROLE(), bravo), true);
         assertEq(defaultCorkController.hasRole(defaultCorkController.CONFIGURATOR_ROLE(), bravo), true);
+        assertEq(defaultCorkController.hasRole(defaultCorkController.FEE_MANAGER_ROLE(), feeManager), true);
 
         // Assign Role Hierarchy correctly
         assertEq(
@@ -59,6 +61,10 @@ contract DefaultCorkControllerSetUpTest is BaseTest {
             defaultCorkController.getRoleAdmin(defaultCorkController.POOL_CREATOR_ROLE()),
             defaultCorkController.DEFAULT_ADMIN_ROLE()
         );
+        assertEq(
+            defaultCorkController.getRoleAdmin(defaultCorkController.FEE_MANAGER_ROLE()),
+            defaultCorkController.DEFAULT_ADMIN_ROLE()
+        );
     }
 
     //-----------------------------------------------------------------------------------------------------//
@@ -66,7 +72,7 @@ contract DefaultCorkControllerSetUpTest is BaseTest {
     //------------------------------------------ Tests for setOnceCorkPoolManager -------------------------------------//
     function test_setOnceCorkPoolManager_shouldRevert_whenPassedZeroAddress() public {
         vm.expectRevert(IErrors.InvalidAddress.selector);
-        defaultCorkController.setOnceCorkPoolManager(address(0));
+        defaultCorkController.setOnceCorkPoolManager(address(0), false);
     }
 
     function test_setOnceCorkPoolManager_shouldRevert_whenAlreadySet() public __as(bravo) {
@@ -74,11 +80,11 @@ contract DefaultCorkControllerSetUpTest is BaseTest {
             new DefaultCorkController(address(1), bravo, makeAddr("not_used"), address(whitelistManager));
 
         // Initialize should succeed first time
-        defaultCorkController1.setOnceCorkPoolManager(address(corkPoolManager));
+        defaultCorkController1.setOnceCorkPoolManager(address(corkPoolManager), false);
 
         // Initialize should revert second time
         vm.expectRevert(IErrors.AlreadySet.selector);
-        defaultCorkController1.setOnceCorkPoolManager(address(corkPoolManager));
+        defaultCorkController1.setOnceCorkPoolManager(address(corkPoolManager), false);
     }
 
     function test_setOnceCorkPoolManager_shouldRevert_whenCalledByNonDefaultAdmin() public __as(alice) {
@@ -89,7 +95,7 @@ contract DefaultCorkControllerSetUpTest is BaseTest {
                 defaultCorkController.DEFAULT_ADMIN_ROLE()
             )
         );
-        defaultCorkController.setOnceCorkPoolManager(address(0));
+        defaultCorkController.setOnceCorkPoolManager(address(0), false);
     }
 
     function test_setOnceCorkPoolManager_shouldWorkCorrectly() public __as(bravo) {
@@ -100,7 +106,7 @@ contract DefaultCorkControllerSetUpTest is BaseTest {
         assertEq(address(defaultCorkController1.CORK_POOL_MANAGER()), address(0));
 
         // Initialize the corkPoolManager
-        defaultCorkController1.setOnceCorkPoolManager(address(corkPoolManager));
+        defaultCorkController1.setOnceCorkPoolManager(address(corkPoolManager), false);
 
         // Assert that the corkPoolManager is initialized
         assertEq(address(defaultCorkController1.CORK_POOL_MANAGER()), address(corkPoolManager));

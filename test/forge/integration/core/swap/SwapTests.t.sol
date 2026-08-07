@@ -116,6 +116,22 @@ contract SwapTests is BaseTest {
         );
     }
 
+    function test_runtimeSwapFeeUpdateChangesSwapAccountingOnly() external __as(alice) __deposit(10 ether, alice) {
+        uint256 unwindFeeBefore = corkPoolManager.unwindSwapFee(defaultPoolId);
+        _setSwapFee(defaultPoolId, 2.5 ether);
+        StateSnapshot memory before = _getStateSnapshot(alice, defaultPoolId);
+
+        (,, uint256 previewFee) = corkPoolManager.previewSwap(defaultPoolId, 1 ether);
+        (,, uint256 actualFee) = corkPoolManager.swap(defaultPoolId, 1 ether, alice);
+        StateSnapshot memory after_ = _getStateSnapshot(alice, defaultPoolId);
+
+        assertGt(actualFee, 0);
+        assertEq(actualFee, previewFee);
+        assertEq(after_.treasuryCollateral - before.treasuryCollateral, actualFee);
+        assertEq(corkPoolManager.swapFee(defaultPoolId), 2.5 ether);
+        assertEq(corkPoolManager.unwindSwapFee(defaultPoolId), unwindFeeBefore);
+    }
+
     function test_swap_shouldNotReleaseFreeCollateral()
         external
         __createPool(1 days, 6, 18)
@@ -123,7 +139,7 @@ contract SwapTests is BaseTest {
         __approveAllTokens(bravo, address(corkPoolManager))
         __as(bravo)
     {
-        defaultCorkController.updateSwapFeePercentage(defaultPoolId, 99_999_900_001_000);
+        _setSwapFee(defaultPoolId, 99_999_900_001_000);
 
         corkPoolManager.mint(defaultPoolId, 100 ether, bravo);
 
@@ -507,7 +523,7 @@ contract SwapTests is BaseTest {
         testOracle.setRate(defaultPoolId, 0);
 
         overridePrank(bravo);
-        defaultCorkController.updateSwapFeePercentage(defaultPoolId, 0);
+        _setSwapFee(defaultPoolId, 0);
 
         overridePrank(alice);
         (uint256 cstSharesIn, uint256 referenceAssetsIn, uint256 fee) =
@@ -520,7 +536,7 @@ contract SwapTests is BaseTest {
 
     function test_swap_EdgeCase_VerySmallAmount() external __as(alice) __deposit(1 ether, alice) {
         overridePrank(bravo);
-        defaultCorkController.updateSwapFeePercentage(defaultPoolId, 0);
+        _setSwapFee(defaultPoolId, 0);
 
         // Test with 1 wei
         uint256 verySmallAmount = 1;

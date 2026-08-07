@@ -169,28 +169,7 @@ All interfaces are located in [this folder](contracts/interfaces/)
 
 Cork Protocol uses the [Safe CREATE2 Deployer](https://github.com/safe-global/safe-singleton-factory) to ensure consistent contract addresses across all chains.
 
-### Deployed on following networks
-
-- Ethereum Mainnet (chain ID: 1)
-
-### Protocol Contracts
-
-All core Cork contracts share the same addresses across all deployed chains:
-
-| Contract | Address |
-|----------|---------|
-| CorkPoolManager | [`0xccCCcCcCCccCfAE2Ee43F0E727A8c2969d74B9eC`](https://www.blockscout.com/search?q=0xccCCcCcCCccCfAE2Ee43F0E727A8c2969d74B9eC&tab=addresses) |
-| CorkAdapter | [`0xCCcCcCCCcccCBaD6F772a511B337d9CCc9570407`](https://www.blockscout.com/search?q=0xCCcCcCCCcccCBaD6F772a511B337d9CCc9570407&tab=addresses) |
-| DefaultCorkController | [`0xcCcCcCccCccbC06627F8aad7aAF13fe3a457f779`](https://www.blockscout.com/search?q=0xcCcCcCccCccbC06627F8aad7aAF13fe3a457f779&tab=addresses) |
-| WhitelistManager | [`0xcCccCcCccCC6e38a2772Eb42D2f408eeB89cb0eE`](https://www.blockscout.com/search?q=0xcCccCcCccCC6e38a2772Eb42D2f408eeB89cb0eE&tab=addresses) |
-| ConstraintRateAdapter | [`0xCCcCcCcccCccEF378949D1a61ED2283C831AF03A`](https://www.blockscout.com/search?q=0xCCcCcCcccCccEF378949D1a61ED2283C831AF03A&tab=addresses) |
-| SharesFactory | [`0xcCCCccCCCcCc1782617fe14A386AC910a20D4324`](https://www.blockscout.com/search?q=0xcCCCccCCCcCc1782617fe14A386AC910a20D4324&tab=addresses) |
-| CorkPoolManager implementation | [`0x1cCccCccCcCf9A60Fe57cd7CEf504d1DaaA78244`](https://www.blockscout.com/search?q=0x1cCccCccCcCf9A60Fe57cd7CEf504d1DaaA78244&tab=addresses) |
-| ConstraintRateAdapter implementation | [`0x1CcCCccCCcca9Cc3446B235af1C4cb8E2B01236E`](https://www.blockscout.com/search?q=0x1CcCCccCCcca9Cc3446B235af1C4cb8E2B01236E&tab=addresses) |
-| WhitelistManager implementation | [`0x1CcCccccCcCbf45E2516caeE86cef63da120CDAD`](https://www.blockscout.com/search?q=0x1CcCccccCcCbf45E2516caeE86cef63da120CDAD&tab=addresses) |
-| Timelock Upgrade | [`0x7CcCCCccCcc0b4c00d01f321035b8e4523eF8448`](https://www.blockscout.com/search?q=0x7CcCCCccCcc0b4c00d01f321035b8e4523eF8448&tab=addresses) |
-| Timelock Admin | [`0x7CccCCccccCCe566CdAFFA9EF2CB245Ad5575c3b`](https://www.blockscout.com/search?q=0x7CccCCccccCCe566CdAFFA9EF2CB245Ad5575c3b&tab=addresses) |
-| Timelock Operational | [`0x7CcCcCCcCccCC1d856F2994A66fAa7011F1A89D9`](https://www.blockscout.com/search?q=0x7CcCcCCcCccCC1d856F2994A66fAa7011F1A89D9&tab=addresses) |
+Deployed addresses are published per version in this repository's [Releases](https://github.com/Cork-Technology/phoenix/releases). `main` tracks the latest stable release; release candidates live on `release/*` branches and are tagged as pre-releases. Take addresses from the release matching the exact version you integrate against.
 
 ### External Dependencies
 
@@ -201,13 +180,18 @@ All core Cork contracts share the same addresses across all deployed chains:
 
 > **Note**: For Sepolia testnet, Bundler3 is deployed at `0xd43EB38E260bF2d6c9B3222559842686B1C303C0`
 
-For deployment parameters and configuration, see [config/prod.toml](config/prod.toml).
-
-For WrapperRateConsumer oracle deployments, see[config/markets/README.md](config/markets/README.md).
-
 ## Setup
 
-For detailed setup, build, and test instructions, see [DEVELOPMENT.md](DEVELOPMENT.md).
+Requires [Foundry](https://getfoundry.sh/).
+
+```
+git clone --recurse-submodules https://github.com/Cork-Technology/phoenix.git
+cd phoenix
+forge build
+forge test
+```
+
+Dependency revisions are pinned in [foundry.lock](foundry.lock). Most tests run without any configuration. The smoke tests are skipped unless `SMOKE_CONFIG_PATH` is set and need an RPC endpoint — see [.env.example](.env.example).
 
 ## Testing
 
@@ -219,6 +203,8 @@ Cork Phoenix employs a comprehensive multi-layered testing approach to ensure pr
 test/forge/
 ├── unit/          # Isolated tests for libraries and individual contracts
 ├── integration/   # End-to-end workflow tests across multiple contracts
+├── invariant/     # Stateful fuzzing of protocol invariants
+├── libraries/     # Library-level tests
 ├── smoke/         # Tests contract functions against on-chain data
 ├── helpers/       # Test helper contracts
 └── mocks/         # Mock contracts for testing
@@ -227,6 +213,7 @@ test/forge/
 - **Unit Tests**: Isolated testing of libraries and individual contract functions
 - **Integration Tests**: End-to-end workflows testing interactions between multiple contracts
 - **Fuzz Tests**: Property-based testing using Foundry's fuzzing engine for edge cases, decimals, and rounding
+- **Invariant Tests**: Stateful fuzzing that asserts protocol invariants hold across arbitrary call sequences
 - **Smoke Tests**: Contract function validation against on-chain data
 
 ## Standards & Frameworks
@@ -249,7 +236,7 @@ We leverage Permit2 for **signature-based token approvals**, eliminating the nee
 
 ## Audits
 
-All audit reports are stored in the [audits](audits/) folder.
+Audit snapshots and fix rounds are tagged in this repository's [Releases](https://github.com/Cork-Technology/phoenix/releases).
 
 ## Security
 
@@ -261,7 +248,7 @@ See the [LICENSE](LICENSE) file for details. Individual contracts may have speci
 
 ## Resources
 
-Find a complete development guide at [DEVELOPMENT.md](DEVELOPMENT.md)
+[Developer documentation](https://docs.cork.tech/)
 
 ## Inspirations & Sources
 

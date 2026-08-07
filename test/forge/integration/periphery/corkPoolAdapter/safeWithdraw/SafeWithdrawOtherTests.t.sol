@@ -16,7 +16,7 @@ contract SafeWithdrawOtherTests is BaseTest {
         super.setUp();
 
         overridePrank(bravo);
-        defaultCorkController.updateSwapFeePercentage(defaultPoolId, 0);
+        _setSwapFee(defaultPoolId, 0);
 
         _deposit(defaultPoolId, 1000 ether, bravo);
 

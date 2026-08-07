@@ -42,10 +42,20 @@ interface ISharesFactory is IErrors {
         MarketId poolId;
     }
 
-    /// @notice Deploys new swap shares based on the provided parameters.
-    /// @dev This function deploys two new PoolShare contracts and registers them as a swap pair. Only the CorkPoolManager contract can call this function.
-    /// @param params The parameters required to deploy the swap shares.
-    /// @return principalToken The address of the first deployed Principal Token contract.
-    /// @return swapToken The address of the second deployed Swap token contract.
+    /// @notice Returns the fixed PoolShare implementation cloned by this factory.
+    /// @return implementation The immutable PoolShare implementation address.
+    function POOL_SHARE_IMPLEMENTATION() external view returns (address implementation);
+
+    /// @notice Deploys deterministic cPT and cST PoolShare clones for a market.
+    /// @dev Only the CorkPoolManager contract can call this function.
+    /// @param params The parameters required to deploy and initialize the pool shares.
+    /// @return principalToken The address of the deployed Cork Principal Token clone.
+    /// @return swapToken The address of the deployed Cork Swap Token clone.
     function deployPoolShares(DeployParams calldata params) external returns (address principalToken, address swapToken);
+
+    /// @notice Predicts the deterministic cPT and cST clone addresses for a market.
+    /// @param poolId The unique market identifier used to derive both clone salts.
+    /// @return principalToken The predicted Cork Principal Token clone address.
+    /// @return swapToken The predicted Cork Swap Token clone address.
+    function predictPoolShares(MarketId poolId) external view returns (address principalToken, address swapToken);
 }

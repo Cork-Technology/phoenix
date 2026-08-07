@@ -31,13 +31,14 @@ import {IPoolManager, MarketId} from "contracts/interfaces/IPoolManager.sol";
 /// @custom:security-contact security@cork.tech
 /// @notice Interface for PoolShare contract with ERC4626-compatible events.
 interface IPoolShare is IErrors {
-    struct ConstructorParams {
-        MarketId poolId;
-        string pairName;
-        string symbol;
-        address poolManager;
-        address ensOwner;
-    }
+    /// @notice Initializes a PoolShare clone.
+    /// @dev Can only be called once by the factory bound to the implementation.
+    /// @param marketId The ID of the market represented by this share.
+    /// @param tokenName The ERC-20 and EIP-712 name.
+    /// @param tokenSymbol The ERC-20 symbol.
+    /// @param initialOwner The initial contract owner.
+    function initialize(MarketId marketId, string calldata tokenName, string calldata tokenSymbol, address initialOwner)
+        external;
 
     /// @notice Designed for topic0 compatibility with ERC4626. Emitted by cPT address
     /// @param sender msg.sender

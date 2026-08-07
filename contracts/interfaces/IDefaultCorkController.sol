@@ -54,15 +54,18 @@ interface IDefaultCorkController is IErrors {
     function setSharesFactory(address _sharesFactory) external;
 
     /// @dev Initialize cork pool.
+    /// @dev The caller must hold POOL_CREATOR_ROLE and selects both initial fee values.
     /// @param params Parameters for the new pool.
     function createNewPool(PoolCreationParams calldata params) external;
 
     /// @notice Updates fee for pool unwindSwap.
+    /// @dev The caller must hold FEE_MANAGER_ROLE.
     /// @param id ID of Cork Pool.
     /// @param newUnwindSwapFeePercentage New value of unwindSwap fees, make sure it has 18 decimals(e.g 1% = 1e18)
     function updateUnwindSwapFeePercentage(MarketId id, uint256 newUnwindSwapFeePercentage) external;
 
     /// @notice Updates base swap fee percentage.
+    /// @dev The caller must hold FEE_MANAGER_ROLE.
     /// @param newSwapFeePercentage New value of fees, make sure it has 18 decimals(e.g 1% = 1e18)
     function updateSwapFeePercentage(MarketId id, uint256 newSwapFeePercentage) external;
 

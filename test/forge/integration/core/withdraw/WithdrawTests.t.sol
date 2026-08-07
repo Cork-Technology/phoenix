@@ -284,30 +284,14 @@ contract WithdrawTests is BaseTest {
     // ================================ Emit Tests ================================ //
 
     function test_EmitWithdrawShouldRevertWhenCalledByNonOwner() external __as(bravo) {
-        IPoolShare.ConstructorParams memory constructorParams = IPoolShare.ConstructorParams({
-            poolId: MarketId.wrap(bytes32("")),
-            pairName: "Swap Token",
-            symbol: "SWT",
-            poolManager: address(1),
-            ensOwner: ensOwner
-        });
-
-        PoolShare share = new PoolShare(constructorParams);
+        PoolShare share = principalToken;
 
         vm.expectRevert(IErrors.NotCorkPoolManager.selector);
         share.emitWithdraw(bravo, alice, bravo, 1 ether, 0.5 ether);
     }
 
     function test_EmitWithdrawShouldWorkCorrectlyAndEmitEvent() external {
-        IPoolShare.ConstructorParams memory constructorParams = IPoolShare.ConstructorParams({
-            poolId: MarketId.wrap(bytes32("")),
-            pairName: "Swap Token",
-            symbol: "SWT",
-            poolManager: address(1),
-            ensOwner: ensOwner
-        });
-
-        PoolShare share = new PoolShare(constructorParams);
+        PoolShare share = principalToken;
 
         address sender = makeAddr("sender");
         address receiver = makeAddr("receiver");
@@ -318,21 +302,13 @@ contract WithdrawTests is BaseTest {
         vm.expectEmit(true, true, true, true);
         emit IPoolShare.Withdraw(sender, receiver, owner, assets, shares);
 
-        overridePrank(address(1));
+        overridePrank(address(corkPoolManager));
         share.emitWithdraw(sender, receiver, owner, assets, shares);
         revertPrank();
     }
 
     function test_EmitWithdrawShouldEmitEventWithDifferentOwnerAndReceiver() external {
-        IPoolShare.ConstructorParams memory constructorParams = IPoolShare.ConstructorParams({
-            poolId: MarketId.wrap(bytes32("")),
-            pairName: "Swap Token",
-            symbol: "SWT",
-            poolManager: address(1),
-            ensOwner: ensOwner
-        });
-
-        PoolShare share = new PoolShare(constructorParams);
+        PoolShare share = principalToken;
 
         address sender = makeAddr("sender");
         address receiver = makeAddr("receiver");
@@ -343,7 +319,7 @@ contract WithdrawTests is BaseTest {
         vm.expectEmit(true, true, true, true);
         emit IPoolShare.Withdraw(sender, receiver, owner, assets, shares);
 
-        overridePrank(address(1));
+        overridePrank(address(corkPoolManager));
         share.emitWithdraw(sender, receiver, owner, assets, shares);
         revertPrank();
     }
@@ -578,7 +554,7 @@ contract WithdrawTests is BaseTest {
         __deposit(500 ether, alice)
     {
         overridePrank(bravo);
-        defaultCorkController.updateSwapFeePercentage(defaultPoolId, 0);
+        _setSwapFee(defaultPoolId, 0);
 
         overridePrank(alice);
         corkPoolManager.swap(defaultPoolId, 500 ether, alice);
@@ -653,7 +629,7 @@ contract WithdrawTests is BaseTest {
         __deposit(500 ether, alice)
     {
         overridePrank(bravo);
-        defaultCorkController.updateSwapFeePercentage(defaultPoolId, 0);
+        _setSwapFee(defaultPoolId, 0);
 
         overridePrank(alice);
         corkPoolManager.swap(defaultPoolId, 250 ether, alice);
@@ -697,7 +673,7 @@ contract WithdrawTests is BaseTest {
         __deposit(1000 ether, alice)
     {
         overridePrank(bravo);
-        defaultCorkController.updateSwapFeePercentage(defaultPoolId, 0);
+        _setSwapFee(defaultPoolId, 0);
 
         overridePrank(alice);
         corkPoolManager.swap(defaultPoolId, 500 ether, alice);
@@ -721,7 +697,7 @@ contract WithdrawTests is BaseTest {
 
     function test_withdrawOther_ShouldRevert_WhenPoolIsEmpty() external __as(alice) __deposit(1000 ether, alice) {
         overridePrank(bravo);
-        defaultCorkController.updateSwapFeePercentage(defaultPoolId, 0);
+        _setSwapFee(defaultPoolId, 0);
 
         overridePrank(alice);
         corkPoolManager.swap(defaultPoolId, 500 ether, alice);
@@ -753,7 +729,7 @@ contract WithdrawTests is BaseTest {
         __deposit(1000 ether, alice)
     {
         overridePrank(bravo);
-        defaultCorkController.updateSwapFeePercentage(defaultPoolId, 0);
+        _setSwapFee(defaultPoolId, 0);
 
         overridePrank(alice);
         corkPoolManager.swap(defaultPoolId, 500 ether, alice);

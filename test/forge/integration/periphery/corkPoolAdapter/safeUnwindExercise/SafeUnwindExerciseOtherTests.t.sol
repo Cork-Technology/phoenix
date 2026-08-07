@@ -17,7 +17,7 @@ contract SafeUnwindExerciseOtherTests is BaseTest {
         super.setUp();
 
         overridePrank(bravo);
-        defaultCorkController.updateUnwindSwapFeePercentage(defaultPoolId, 0);
+        _setUnwindSwapFee(defaultPoolId, 0);
 
         _deposit(defaultPoolId, 2000 ether, bravo);
 

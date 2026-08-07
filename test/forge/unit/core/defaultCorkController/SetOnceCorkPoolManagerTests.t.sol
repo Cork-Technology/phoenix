@@ -29,7 +29,7 @@ contract SetOnceCorkPoolManagerTests is Test {
     //------------------------------------------ Tests for setOnceCorkPoolManager -------------------------------------//
     function test_setOnceCorkPoolManager_shouldRevert_whenPassedZeroAddress() public {
         vm.expectRevert(IErrors.InvalidAddress.selector);
-        defaultCorkController.setOnceCorkPoolManager(address(0));
+        defaultCorkController.setOnceCorkPoolManager(address(0), false);
     }
 
     function test_setOnceCorkPoolManager_shouldRevert_whenAlreadySet() public {
@@ -38,11 +38,11 @@ contract SetOnceCorkPoolManagerTests is Test {
             new DefaultCorkController(ensOwner, defaultAdmin, makeAddr("not_used"), whitelistManager);
 
         // Initialize should succeed first time
-        defaultCorkController1.setOnceCorkPoolManager(address(corkPoolManager));
+        defaultCorkController1.setOnceCorkPoolManager(address(corkPoolManager), false);
 
         // Initialize should revert second time
         vm.expectRevert(IErrors.AlreadySet.selector);
-        defaultCorkController1.setOnceCorkPoolManager(address(corkPoolManager));
+        defaultCorkController1.setOnceCorkPoolManager(address(corkPoolManager), false);
     }
 
     function test_setOnceCorkPoolManager_shouldRevert_whenCalledByNonDefaultAdmin() public {
@@ -54,7 +54,7 @@ contract SetOnceCorkPoolManagerTests is Test {
                 defaultCorkController.DEFAULT_ADMIN_ROLE()
             )
         );
-        defaultCorkController.setOnceCorkPoolManager(address(0));
+        defaultCorkController.setOnceCorkPoolManager(address(0), false);
     }
 
     function test_setOnceCorkPoolManager_shouldWorkCorrectly() public {
@@ -66,9 +66,17 @@ contract SetOnceCorkPoolManagerTests is Test {
         assertEq(address(defaultCorkController1.CORK_POOL_MANAGER()), address(0));
 
         // Initialize the corkPoolManager
-        defaultCorkController1.setOnceCorkPoolManager(address(corkPoolManager));
+        defaultCorkController1.setOnceCorkPoolManager(address(corkPoolManager), false);
 
         // Assert that the corkPoolManager is initialized
         assertEq(address(defaultCorkController1.CORK_POOL_MANAGER()), address(corkPoolManager));
+    }
+
+    function test_setOnceCorkPoolManager_shouldApplyInitialPauseState() public {
+        DefaultCorkController controller =
+            new DefaultCorkController(ensOwner, defaultAdmin, makeAddr("not_used"), whitelistManager);
+        controller.setOnceCorkPoolManager(address(corkPoolManager), true);
+
+        assertTrue(controller.paused());
     }
 }

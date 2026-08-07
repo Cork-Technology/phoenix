@@ -9,6 +9,8 @@ import {BaseTest} from "test/forge/BaseTest.sol";
 import {DummyWETH} from "test/forge/mocks/DummyWETH.sol";
 
 contract CreateNewPoolTest is BaseTest {
+    uint256 private constant BASELINE_JIT_MARKET_CREATION_GAS = 5_358_734;
+
     //------------------------------------- Tests for createNewPool ----------------------------------------//
     function test_CreateNewPool_ShouldRevert_WhenCalledByNonPoolDeployer() public __as(alice) {
         Market memory market = Market({
@@ -103,6 +105,29 @@ contract CreateNewPoolTest is BaseTest {
         assertEq(market.rateOracle, address(testOracle));
         assertEq(corkPoolManager.unwindSwapFee(id), unwindSwapFee);
         assertEq(corkPoolManager.swapFee(id), swapFee);
+    }
+
+    function test_CreateNewPool_UsesAtLeast70PercentLessGasThanFullDeployments() external {
+        Market memory market = Market({
+            collateralAsset: address(collateralAsset),
+            referenceAsset: address(referenceAsset),
+            expiryTimestamp: block.timestamp + 100 days,
+            rateMin: DEFAULT_RATE_MIN,
+            rateMax: DEFAULT_RATE_MAX,
+            rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
+            rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
+            rateOracle: address(testOracle)
+        });
+        uint256 gasBefore = gasleft();
+
+        defaultCorkController.createNewPool(
+            IDefaultCorkController.PoolCreationParams(
+                market, DEFAULT_REVERSE_SWAP_FEE, DEFAULT_BASE_REDEMPTION_FEE, false
+            )
+        );
+
+        uint256 gasUsed = gasBefore - gasleft();
+        assertLt(gasUsed, BASELINE_JIT_MARKET_CREATION_GAS * 30 / 100);
     }
 
     //-----------------------------------------------------------------------------------------------------//

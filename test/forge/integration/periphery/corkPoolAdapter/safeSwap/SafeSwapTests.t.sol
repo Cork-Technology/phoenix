@@ -17,7 +17,7 @@ contract SafeSwapTests is BaseTest {
         super.setUp();
 
         overridePrank(bravo);
-        defaultCorkController.updateSwapFeePercentage(defaultPoolId, 0);
+        _setSwapFee(defaultPoolId, 0);
 
         _deposit(defaultPoolId, 2000 ether, bravo);
 

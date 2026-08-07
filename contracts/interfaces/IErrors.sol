@@ -45,6 +45,8 @@ interface IErrors {
 
     /// @notice Thrown when the caller is not the CorkPoolManager contract.
     error NotCorkPoolManager();
+    /// @notice Thrown when the caller is not the PoolShare factory.
+    error NotSharesFactory();
 
     /// @notice Thrown when passed invalid parameters.
     error InvalidParams();

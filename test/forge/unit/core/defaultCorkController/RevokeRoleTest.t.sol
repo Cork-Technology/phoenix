@@ -2,7 +2,6 @@
 pragma solidity ^0.8.30;
 
 import {DefaultCorkController} from "contracts/core/DefaultCorkController.sol";
-import {IDefaultCorkController} from "contracts/interfaces/IDefaultCorkController.sol";
 import {IAccessControl} from "openzeppelin-contracts/contracts/access/IAccessControl.sol";
 import {BaseTest} from "test/forge/BaseTest.sol";
 
@@ -45,6 +44,18 @@ contract RevokeRoleTest is BaseTest {
         defaultCorkController.revokeRole(role, address(9));
 
         assertFalse(defaultCorkController.hasRole(role, address(9)));
+    }
+
+    function test_RevokeFeeManagerRoleEmitsMonitoringEvent() public {
+        bytes32 role = defaultCorkController.FEE_MANAGER_ROLE();
+        address oldFeeManager = makeAddr("oldFeeManager");
+        defaultCorkController.grantRole(role, oldFeeManager);
+
+        vm.expectEmit(true, true, true, true, address(defaultCorkController));
+        emit IAccessControl.RoleRevoked(role, oldFeeManager, adminUserAddress);
+        defaultCorkController.revokeRole(role, oldFeeManager);
+
+        assertFalse(defaultCorkController.hasRole(role, oldFeeManager));
     }
 
     //-----------------------------------------------------------------------------------------------------//

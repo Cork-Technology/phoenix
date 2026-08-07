@@ -15,13 +15,18 @@ cbor_metadata = false
 create2_deployer = "0x914d7Fec6aaC8cd542e72Bca78B30650d45643d7" # Safe Singleton Factory address
 ignored_warnings_from = ["test", "script"]
 # File system permissions for Config contract to read/write TOML files
-fs_permissions = [{ access = "read-write", path = "./config/" }]
+fs_permissions = [
+    { access = "read-write", path = "./config/" },
+    { access = "read-write", path = "./cache/" },
+]
 
 # Production profile for deployment with optimized IR compilation
 [profile.production]
 out = "out-production"
 test = "test"
 via_ir = true
+# Script and test harness runtimes exceed EIP-170; deployed runtimes are enforced in DeployProtocolScript.
+code_size_limit = 1000000
 
 [fmt]
 sort_imports = true
@@ -34,3 +39,5 @@ number_underscore = "thousands"
 sepolia = "${SEPOLIA_RPC_URL}"
 mainnet = "${MAINNET_RPC_URL}"
 tenderly = "${TENDERLY_RPC_URL}"
+base = "${BASE_RPC_URL}"
+arbitrum = "${ARBITRUM_RPC_URL}"

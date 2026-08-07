@@ -36,6 +36,7 @@ import {IWhitelistManager} from "contracts/interfaces/IWhitelistManager.sol";
 /// @notice DefaultCorkController contract for managing pairs and controlling Cork protocol
 contract DefaultCorkController is AccessControl, Ownable, Pausable, IDefaultCorkController {
     bytes32 public constant CONFIGURATOR_ROLE = keccak256("CONFIGURATOR_ROLE");
+    bytes32 public constant FEE_MANAGER_ROLE = keccak256("FEE_MANAGER_ROLE");
     bytes32 public constant POOL_CREATOR_ROLE = keccak256("POOL_CREATOR_ROLE");
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
     bytes32 public constant UNPAUSER_ROLE = keccak256("UNPAUSER_ROLE");
@@ -62,6 +63,7 @@ contract DefaultCorkController is AccessControl, Ownable, Pausable, IDefaultCork
 
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(CONFIGURATOR_ROLE, operationsManager);
+        _grantRole(FEE_MANAGER_ROLE, operationsManager);
         _grantRole(POOL_CREATOR_ROLE, operationsManager);
         _grantRole(WHITELIST_ADDER_ROLE, operationsManager);
         _grantRole(WHITELIST_REMOVER_ROLE, operationsManager);
@@ -69,15 +71,19 @@ contract DefaultCorkController is AccessControl, Ownable, Pausable, IDefaultCork
         WHITELIST_MANAGER = IWhitelistManager(whitelistManagerAddress);
     }
 
-    /// @dev Set the Cork Pool Manager contract address.
-    /// Only callable by the DEFAULT_ADMIN_ROLE.
-    /// Definition is only allowed once.
+    /// @dev Set the Cork Pool Manager and initial global pause state.
+    /// Only callable by the DEFAULT_ADMIN_ROLE. Definition is only allowed once.
     /// @param corkPoolManagerAddress The address of the Cork Pool Manager contract.
-    function setOnceCorkPoolManager(address corkPoolManagerAddress) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    /// @param initiallyPaused Whether the controller must start globally paused.
+    function setOnceCorkPoolManager(address corkPoolManagerAddress, bool initiallyPaused)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
         require(corkPoolManagerAddress != address(0), InvalidAddress());
         require(address(CORK_POOL_MANAGER) == address(0), AlreadySet());
 
         CORK_POOL_MANAGER = IPoolManager(corkPoolManagerAddress);
+        if (initiallyPaused) _pause();
     }
 
     ///======================================================///
@@ -126,13 +132,13 @@ contract DefaultCorkController is AccessControl, Ownable, Pausable, IDefaultCork
     /// @inheritdoc IDefaultCorkController
     function updateUnwindSwapFeePercentage(MarketId id, uint256 newUnwindSwapFeePercentage)
         external
-        onlyRole(CONFIGURATOR_ROLE)
+        onlyRole(FEE_MANAGER_ROLE)
     {
         CORK_POOL_MANAGER.updateUnwindSwapFeePercentage(id, newUnwindSwapFeePercentage);
     }
 
     /// @inheritdoc IDefaultCorkController
-    function updateSwapFeePercentage(MarketId id, uint256 newSwapFeePercentage) external onlyRole(CONFIGURATOR_ROLE) {
+    function updateSwapFeePercentage(MarketId id, uint256 newSwapFeePercentage) external onlyRole(FEE_MANAGER_ROLE) {
         CORK_POOL_MANAGER.updateSwapFeePercentage(id, newSwapFeePercentage);
     }
 

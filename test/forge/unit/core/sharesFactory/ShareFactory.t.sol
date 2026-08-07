@@ -1,7 +1,5 @@
 pragma solidity ^0.8.30;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IERC1967} from "@openzeppelin/contracts/interfaces/IERC1967.sol";
 import {PoolShare} from "contracts/core/assets/PoolShare.sol";
 import {SharesFactory} from "contracts/core/assets/SharesFactory.sol";
 import {IDefaultCorkController} from "contracts/interfaces/IDefaultCorkController.sol";
@@ -15,6 +13,7 @@ import {MockBundler3} from "test/forge/mocks/MockBundler3.sol";
 contract SharesFactoryTest is BaseTest {
     uint256 public depositAmount = 1 ether;
     uint256 public swapAmount = 0.123 ether;
+    uint256 private constant BASELINE_SHARE_DEPLOYMENT_GAS = 4_875_308;
 
     function setUp() public override {
         // make default address alice so that alice deploys the contracts
@@ -36,14 +35,13 @@ contract SharesFactoryTest is BaseTest {
 
     // ------------------------------- getDeployedSwapShares ----------------------------------- //
     function test_getDeployedSwapSharesShouldWorkCorrectly() external {
-        MarketId poolId = corkPoolManager.getId(poolParams());
+        Market memory pool = poolParams();
+        MarketId poolId = corkPoolManager.getId(pool);
         (address principalToken, address swapToken) = corkPoolManager.shares(poolId);
         assertEq(principalToken, address(0));
         assertEq(swapToken, address(0));
 
-        uint64 currentNonce = vm.getNonce(address(sharesFactory));
-        address expectedPrincipalToken = vm.computeCreateAddress(address(sharesFactory), currentNonce);
-        address expectedSwapToken = vm.computeCreateAddress(address(sharesFactory), currentNonce + 1);
+        (address expectedPrincipalToken, address expectedSwapToken) = _expectedPoolShareAddresses(pool, poolId);
 
         poolId = createPool();
 
@@ -60,9 +58,9 @@ contract SharesFactoryTest is BaseTest {
     }
 
     function test_getDeployedSwapSharesShouldWorkWithSingleShare() external {
-        uint64 currentNonce = vm.getNonce(address(sharesFactory));
-        address expectedPrincipalToken = vm.computeCreateAddress(address(sharesFactory), currentNonce);
-        address expectedSwapToken = vm.computeCreateAddress(address(sharesFactory), currentNonce + 1);
+        Market memory pool = poolParams();
+        MarketId poolId = MarketId.wrap(keccak256(abi.encode(pool)));
+        (address expectedPrincipalToken, address expectedSwapToken) = _expectedPoolShareAddresses(pool, poolId);
 
         MarketId newPoolId = createPool();
 
@@ -72,10 +70,6 @@ contract SharesFactoryTest is BaseTest {
     }
 
     function test_getDeployedSwapSharesShouldWorkWithDifferentMarketParameters() external {
-        uint64 currentNonce = vm.getNonce(address(sharesFactory));
-        address expectedPrincipalToken = vm.computeCreateAddress(address(sharesFactory), currentNonce);
-        address expectedSwapToken = vm.computeCreateAddress(address(sharesFactory), currentNonce + 1);
-
         // Deploy assets for first pool
         Market memory pool1 = Market({
             collateralAsset: address(collateralAsset),
@@ -89,6 +83,8 @@ contract SharesFactoryTest is BaseTest {
         });
         MarketId pool1Id = MarketId.wrap(keccak256(abi.encode(pool1)));
 
+        (address expectedPrincipalToken, address expectedSwapToken) = _expectedPoolShareAddresses(pool1, pool1Id);
+
         overridePrank(alice);
         testOracle.setRate(pool1Id, DEFAULT_ORACLE_RATE);
         defaultCorkController.createNewPool(
@@ -100,10 +96,6 @@ contract SharesFactoryTest is BaseTest {
         (address principalToken, address swapToken) = corkPoolManager.shares(pool1Id);
         assertEq(principalToken, expectedPrincipalToken);
         assertEq(swapToken, expectedSwapToken);
-
-        currentNonce = vm.getNonce(address(sharesFactory));
-        expectedPrincipalToken = vm.computeCreateAddress(address(sharesFactory), currentNonce);
-        expectedSwapToken = vm.computeCreateAddress(address(sharesFactory), currentNonce + 1);
 
         // Deploy assets for second pool with different parameters
         Market memory pool2 = Market({
@@ -117,6 +109,8 @@ contract SharesFactoryTest is BaseTest {
             rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX
         });
         MarketId pool2Id = MarketId.wrap(keccak256(abi.encode(pool2)));
+
+        (expectedPrincipalToken, expectedSwapToken) = _expectedPoolShareAddresses(pool2, pool2Id);
 
         overridePrank(alice);
         testOracle.setRate(pool2Id, DEFAULT_ORACLE_RATE);
@@ -159,9 +153,6 @@ contract SharesFactoryTest is BaseTest {
     }
 
     function test_DeploySwapSharesShouldWorkCorrectly() external {
-        uint64 currentNonce = vm.getNonce(address(sharesFactory));
-        address expectedPrincipalToken = vm.computeCreateAddress(address(sharesFactory), currentNonce);
-        address expectedSwapToken = vm.computeCreateAddress(address(sharesFactory), currentNonce + 1);
         Market memory pool1 = Market({
             collateralAsset: address(collateralAsset),
             referenceAsset: address(referenceAsset),
@@ -173,6 +164,8 @@ contract SharesFactoryTest is BaseTest {
             rateOracle: address(testOracle)
         });
         MarketId poolId1 = MarketId.wrap(keccak256(abi.encode(pool1)));
+
+        (address expectedPrincipalToken, address expectedSwapToken) = _expectedPoolShareAddresses(pool1, poolId1);
 
         overridePrank(alice);
         vm.expectEmit(true, false, false, true);
@@ -272,10 +265,6 @@ contract SharesFactoryTest is BaseTest {
     }
 
     function test_DeploySwapSharesShouldEmitCorrectEvent() external {
-        uint64 currentNonce = vm.getNonce(address(sharesFactory));
-        address expectedPrincipalToken = vm.computeCreateAddress(address(sharesFactory), currentNonce);
-        address expectedSwapToken = vm.computeCreateAddress(address(sharesFactory), currentNonce + 1);
-
         Market memory pool1 = Market({
             collateralAsset: address(collateralAsset),
             referenceAsset: address(referenceAsset),
@@ -287,6 +276,8 @@ contract SharesFactoryTest is BaseTest {
             rateOracle: address(testOracle)
         });
         MarketId poolId1 = MarketId.wrap(keccak256(abi.encode(pool1)));
+
+        (address expectedPrincipalToken, address expectedSwapToken) = _expectedPoolShareAddresses(pool1, poolId1);
 
         overridePrank(alice);
         testOracle.setRate(poolId1, DEFAULT_ORACLE_RATE);
@@ -330,6 +321,66 @@ contract SharesFactoryTest is BaseTest {
         );
     }
 
+    function test_DeployPoolSharesShouldBeDeterministicViaCreate2() external {
+        Market memory pool = poolParams();
+        MarketId poolId = MarketId.wrap(keccak256(abi.encode(pool)));
+
+        (address expectedPrincipalToken, address expectedSwapToken) = _expectedPoolShareAddresses(pool, poolId);
+
+        createPool();
+
+        (address principalToken, address swapToken) = corkPoolManager.shares(poolId);
+        assertEq(principalToken, expectedPrincipalToken);
+        assertEq(swapToken, expectedSwapToken);
+        assertNotEq(principalToken, swapToken);
+    }
+
+    function test_DeployPoolSharesAddressIndependentOfFactoryNonce() external {
+        Market memory pool = poolParams();
+        MarketId poolId = MarketId.wrap(keccak256(abi.encode(pool)));
+
+        (address expectedPrincipalToken, address expectedSwapToken) = _expectedPoolShareAddresses(pool, poolId);
+
+        // Create an unrelated pool first so the factory's nonce advances
+        Market memory otherPool = Market({
+            collateralAsset: address(collateralAsset),
+            referenceAsset: address(referenceAsset),
+            expiryTimestamp: block.timestamp + 200 days,
+            rateOracle: address(testOracle),
+            rateMin: DEFAULT_RATE_MIN,
+            rateMax: DEFAULT_RATE_MAX,
+            rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
+            rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX
+        });
+        MarketId otherPoolId = MarketId.wrap(keccak256(abi.encode(otherPool)));
+
+        overridePrank(alice);
+        testOracle.setRate(otherPoolId, DEFAULT_ORACLE_RATE);
+        defaultCorkController.createNewPool(
+            IDefaultCorkController.PoolCreationParams(
+                otherPool, DEFAULT_REVERSE_SWAP_FEE, DEFAULT_BASE_REDEMPTION_FEE, false
+            )
+        );
+
+        createPool();
+
+        (address principalToken, address swapToken) = corkPoolManager.shares(poolId);
+        assertEq(principalToken, expectedPrincipalToken);
+        assertEq(swapToken, expectedSwapToken);
+    }
+
+    function test_DeployPoolShares_UsesAtLeast85PercentLessGasThanFullDeployments() external {
+        Market memory pool = poolParams();
+        MarketId poolId = MarketId.wrap(keccak256(abi.encode(pool)));
+        uint256 gasBefore = gasleft();
+
+        overridePrank(address(corkPoolManager));
+        sharesFactory.deployPoolShares(ISharesFactory.DeployParams({poolParams: pool, poolId: poolId}));
+
+        uint256 gasUsed = gasBefore - gasleft();
+        assertLt(gasUsed, BASELINE_SHARE_DEPLOYMENT_GAS * 15 / 100);
+    }
+
     // some local helpers because we need to test some things independently
     //-----------------------------------------------------------------------------------------------------//
 
@@ -356,5 +407,13 @@ contract SharesFactoryTest is BaseTest {
                 poolParams, DEFAULT_REVERSE_SWAP_FEE, DEFAULT_BASE_REDEMPTION_FEE, false
             )
         );
+    }
+
+    function _expectedPoolShareAddresses(Market memory, MarketId poolId)
+        internal
+        view
+        returns (address expectedPrincipalToken, address expectedSwapToken)
+    {
+        (expectedPrincipalToken, expectedSwapToken) = sharesFactory.predictPoolShares(poolId);
     }
 }

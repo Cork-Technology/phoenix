@@ -1,13 +1,16 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.30;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {ERC20Burnable} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {
+    ERC20BurnableUpgradeable
+} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
+import {
+    ERC20PermitUpgradeable
+} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
 import {IPoolManager, Market, MarketId} from "contracts/interfaces/IPoolManager.sol";
 import {IPoolShare} from "contracts/interfaces/IPoolShare.sol";
 import {ISwapRate} from "contracts/interfaces/ISwapRate.sol";
-import {ERC20Permit} from "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Permit.sol";
 
 //             CCCCCCCCC  C
 //          CCCCCCCCCCC   C
@@ -35,18 +38,13 @@ import {ERC20Permit} from "openzeppelin-contracts/contracts/token/ERC20/extensio
 /// @author Cork Team
 /// @custom:security-contact security@cork.tech
 /// @notice Contract for implementing Cork assets (Swap Tokens and Principal Tokens).
-contract PoolShare is ERC20Burnable, ERC20Permit, Ownable, ISwapRate, IPoolShare {
-    string public pairName;
-
-    // poolId, poolManager, factory need to adhere to IPoolShare interface without extra boilerplate
-    // so we keep the variable camel case rather than SCREAMING_CASE.
-    MarketId public immutable poolId;
+contract PoolShare is ERC20BurnableUpgradeable, ERC20PermitUpgradeable, OwnableUpgradeable, ISwapRate, IPoolShare {
+    MarketId public poolId;
+    uint256 public issuedAt;
 
     IPoolManager public immutable poolManager;
 
     address public immutable factory;
-
-    uint256 public immutable issuedAt;
 
     ///======================================================///
     ///=================== MODIFIERS ========================///
@@ -56,24 +54,49 @@ contract PoolShare is ERC20Burnable, ERC20Permit, Ownable, ISwapRate, IPoolShare
         require(msg.sender == address(poolManager), NotCorkPoolManager());
         _;
     }
+    modifier onlySharesFactory() {
+        require(msg.sender == factory, NotSharesFactory());
+        _;
+    }
 
     ///======================================================///
     ///================== CONSTRUCTOR =======================///
     ///======================================================///
+    constructor(address corkPoolManager) {
+        require(corkPoolManager != address(0), ZeroAddress());
 
-    constructor(IPoolShare.ConstructorParams memory params)
-        ERC20(params.pairName, params.symbol)
-        ERC20Permit(params.pairName)
-        Ownable(params.ensOwner)
+        poolManager = IPoolManager(corkPoolManager);
+        factory = msg.sender;
+
+        _disableInitializers();
+    }
+
+    /// @inheritdoc IPoolShare
+    function initialize(MarketId marketId, string calldata tokenName, string calldata tokenSymbol, address initialOwner)
+        external
+        onlySharesFactory
+        initializer
     {
-        require(params.ensOwner != address(0), ZeroAddress());
+        __ERC20_init(tokenName, tokenSymbol);
+        __Ownable_init(initialOwner);
 
-        pairName = params.pairName;
-        poolManager = IPoolManager(params.poolManager);
-        poolId = params.poolId;
-
-        factory = _msgSender();
+        poolId = marketId;
         issuedAt = block.timestamp;
+    }
+
+    /// @notice Returns the ERC-20 pair name without duplicating it in clone storage.
+    function pairName() external view returns (string memory) {
+        return name();
+    }
+
+    /// @dev Reuses the ERC-20 name instead of storing a second EIP-712 name per clone.
+    function _EIP712Name() internal view override returns (string memory) {
+        return name();
+    }
+
+    /// @dev The PoolShare permit domain has always used version 1.
+    function _EIP712Version() internal pure override returns (string memory) {
+        return "1";
     }
 
     ///======================================================///
@@ -112,12 +135,12 @@ contract PoolShare is ERC20Burnable, ERC20Permit, Ownable, ISwapRate, IPoolShare
         _mint(to, amount);
     }
 
-    /// @inheritdoc ERC20Burnable
+    /// @inheritdoc ERC20BurnableUpgradeable
     function burn(uint256 amount) public override onlyCorkPoolManager {
         _burn(_msgSender(), amount);
     }
 
-    /// @inheritdoc ERC20Burnable
+    /// @inheritdoc ERC20BurnableUpgradeable
     function burnFrom(address owner, uint256 amount) public override onlyCorkPoolManager {
         _spendAllowance(owner, _msgSender(), amount);
         _burn(owner, amount);

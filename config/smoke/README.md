@@ -15,7 +15,7 @@ smoke-{id}-{collateral}-{reference}.toml
 - `{reference}`: Reference Asset symbol (e.g., sUSDe, wstETH, cbBTC)
 
 
-**Examples:**
+**Examples** — these illustrate the convention rather than the current contents of this directory:
 - `smoke-00-vbUSDC-sUSDe.toml` - Dev smoke test for vbUSDC/sUSDe market
 - `smoke-01-vbUSDC-sUSDe.toml` - Prod smoke test for vbUSDC/sUSDe market
 
@@ -53,7 +53,7 @@ Each smoke test config file contains:
 - Swap/Exercise/Unwind preview amounts and expected outputs
 - `expected_whitelist_enabled` - Whether whitelist is expected to be enabled
 
-### 3. Environment Variables
+### 2. Environment Variables
 
 The config uses environment variables for dynamic values:
 - `${FORK_URL}` - RPC URL for the fork

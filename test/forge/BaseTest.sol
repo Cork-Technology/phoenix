@@ -31,6 +31,7 @@ abstract contract BaseTest is SigUtils {
     address internal unpauser = makeAddr("unpauser");
     address internal whitelistAdder = makeAddr("whitelistAdder");
     address internal whitelistRemover = makeAddr("whitelistRemover");
+    address internal feeManager = makeAddr("feeManager");
     address internal overridenAddress;
     address internal ensOwner = bob;
 
@@ -90,7 +91,7 @@ abstract contract BaseTest is SigUtils {
 
     function setUp() public virtual {
         vm.startPrank(bravo);
-        deployContracts(bravo, bravo, pauser, unpauser, bravo);
+        deployContracts(bravo, bravo, feeManager, pauser, unpauser, bravo);
         createMarket(1 days);
 
         _giveAssets(alice);
@@ -116,6 +117,7 @@ abstract contract BaseTest is SigUtils {
         vm.label(unpauser, "unpauser");
         vm.label(whitelistAdder, "Whitelist Adder");
         vm.label(whitelistRemover, "Whitelist Remover");
+        vm.label(feeManager, "Fee Manager");
         vm.label(CORK_PROTOCOL_TREASURY, "Cork Protocol Treasury");
         vm.label(address(corkPoolManager), "Cork Pool Manager");
         vm.label(address(sharesFactory), "Shares Factory");
@@ -277,6 +279,26 @@ abstract contract BaseTest is SigUtils {
         return (collateralAsset, referenceAsset, poolId);
     }
 
+    function _setSwapFee(MarketId poolId, uint256 fee) internal {
+        address previousCaller = currentCaller();
+        vm.stopPrank();
+        vm.startPrank(feeManager);
+        defaultCorkController.updateSwapFeePercentage(poolId, fee);
+        vm.stopPrank();
+        vm.startPrank(previousCaller);
+        defaultCorkController.hasRole(bytes32(0), previousCaller);
+    }
+
+    function _setUnwindSwapFee(MarketId poolId, uint256 fee) internal {
+        address previousCaller = currentCaller();
+        vm.stopPrank();
+        vm.startPrank(feeManager);
+        defaultCorkController.updateUnwindSwapFeePercentage(poolId, fee);
+        vm.stopPrank();
+        vm.startPrank(previousCaller);
+        defaultCorkController.hasRole(bytes32(0), previousCaller);
+    }
+
     function createMarket(
         uint256 expiryInSeconds,
         uint8 collateralDecimal,
@@ -376,6 +398,7 @@ abstract contract BaseTest is SigUtils {
     function deployContracts(
         address admin,
         address configurator,
+        address feeManager_,
         address pauser,
         address unpauser,
         address poolDeployer
@@ -423,6 +446,7 @@ abstract contract BaseTest is SigUtils {
         // Step 7: Grant roles to contracts
         corkPoolManager.grantRole(corkPoolManager.CORK_CONTROLLER_ROLE(), address(defaultCorkController));
         defaultCorkController.grantRole(defaultCorkController.CONFIGURATOR_ROLE(), configurator);
+        defaultCorkController.grantRole(defaultCorkController.FEE_MANAGER_ROLE(), feeManager_);
         defaultCorkController.grantRole(defaultCorkController.PAUSER_ROLE(), pauser);
         defaultCorkController.grantRole(defaultCorkController.UNPAUSER_ROLE(), unpauser);
         defaultCorkController.grantRole(defaultCorkController.POOL_CREATOR_ROLE(), poolDeployer);
@@ -432,7 +456,7 @@ abstract contract BaseTest is SigUtils {
         // Step 8: Initialize contracts addresses
         overridePrank(bravo);
         whitelistManager.setOnceCorkPoolManager(address(corkPoolManager));
-        defaultCorkController.setOnceCorkPoolManager(address(corkPoolManager));
+        defaultCorkController.setOnceCorkPoolManager(address(corkPoolManager), false);
         constraintRateAdapter.setOnceCorkPoolManager(address(corkPoolManager));
         defaultCorkController.setSharesFactory(address(sharesFactory));
 
