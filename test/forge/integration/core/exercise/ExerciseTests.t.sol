@@ -97,13 +97,13 @@ contract ExerciseTests is BaseTest {
         );
     }
 
-    function test_runtimeSwapFeeUpdateChangesExerciseAccountingOnly()
+    function test_poolSwapFeeAppliesToExerciseAccountingOnly()
         external
         __as(alice)
+        __withSwapFee(2.5 ether)
         __deposit(depositAmount, alice)
     {
         uint256 unwindFeeBefore = corkPoolManager.unwindSwapFee(defaultPoolId);
-        _setSwapFee(defaultPoolId, 2.5 ether);
         StateSnapshot memory before = _getStateSnapshot(alice, defaultPoolId);
 
         (,, uint256 previewFee) = corkPoolManager.previewExercise(defaultPoolId, exerciseShares);

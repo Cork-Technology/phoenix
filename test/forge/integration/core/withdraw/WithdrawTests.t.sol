@@ -551,12 +551,9 @@ contract WithdrawTests is BaseTest {
     function test_maxWithdrawOther_ShouldReturnCorrectAmount_WhenExpired()
         external
         __as(alice)
+        __withSwapFee(0)
         __deposit(500 ether, alice)
     {
-        overridePrank(bravo);
-        _setSwapFee(defaultPoolId, 0);
-
-        overridePrank(alice);
         corkPoolManager.swap(defaultPoolId, 500 ether, alice);
         revertPrank();
 
@@ -626,12 +623,9 @@ contract WithdrawTests is BaseTest {
     function test_withdrawOther_ShouldRevert_WhenInsufficientReferenceLiquidity()
         external
         __as(alice)
+        __withSwapFee(0)
         __deposit(500 ether, alice)
     {
-        overridePrank(bravo);
-        _setSwapFee(defaultPoolId, 0);
-
-        overridePrank(alice);
         corkPoolManager.swap(defaultPoolId, 250 ether, alice);
 
         vm.warp(block.timestamp + 2 days);
@@ -670,12 +664,9 @@ contract WithdrawTests is BaseTest {
     function test_withdrawOther_ShouldRevert_WhenInsufficientAllowance()
         external
         __as(alice)
+        __withSwapFee(0)
         __deposit(1000 ether, alice)
     {
-        overridePrank(bravo);
-        _setSwapFee(defaultPoolId, 0);
-
-        overridePrank(alice);
         corkPoolManager.swap(defaultPoolId, 500 ether, alice);
 
         vm.warp(block.timestamp + 2 days);
@@ -695,11 +686,12 @@ contract WithdrawTests is BaseTest {
         corkPoolManager.withdraw(defaultPoolId, 1 ether, alice, alice);
     }
 
-    function test_withdrawOther_ShouldRevert_WhenPoolIsEmpty() external __as(alice) __deposit(1000 ether, alice) {
-        overridePrank(bravo);
-        _setSwapFee(defaultPoolId, 0);
-
-        overridePrank(alice);
+    function test_withdrawOther_ShouldRevert_WhenPoolIsEmpty()
+        external
+        __as(alice)
+        __withSwapFee(0)
+        __deposit(1000 ether, alice)
+    {
         corkPoolManager.swap(defaultPoolId, 500 ether, alice);
 
         vm.warp(block.timestamp + 2 days);
@@ -726,12 +718,9 @@ contract WithdrawTests is BaseTest {
     function test_withdrawOther_ShouldRevert_WhenExceedsAvailableReference()
         external
         __as(alice)
+        __withSwapFee(0)
         __deposit(1000 ether, alice)
     {
-        overridePrank(bravo);
-        _setSwapFee(defaultPoolId, 0);
-
-        overridePrank(alice);
         corkPoolManager.swap(defaultPoolId, 500 ether, alice);
 
         vm.warp(block.timestamp + 2 days);

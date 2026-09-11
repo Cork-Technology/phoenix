@@ -263,18 +263,15 @@ abstract contract SmokeBase is Test, Config {
             EXPECTED_RATE_MAX_BOUND,
             EXPECTED_RATE_CHANGE_PER_DAY_MAX,
             EXPECTED_RATE_CHANGE_CAPACITY_MAX,
-            ORACLE_ADDRESS
+            ORACLE_ADDRESS,
+            EXPECTED_SWAP_FEE_PERCENTAGE,
+            EXPECTED_UNWIND_SWAP_FEE_PERCENTAGE
         );
 
         // initialize with proper parameters in case it's not been initialized
         if (!isInitialized(marketParams)) {
             IDefaultCorkController.PoolCreationParams memory poolCreationParams =
-                IDefaultCorkController.PoolCreationParams(
-                    marketParams,
-                    EXPECTED_UNWIND_SWAP_FEE_PERCENTAGE,
-                    EXPECTED_SWAP_FEE_PERCENTAGE,
-                    EXPECTED_WHITELIST_ENABLED
-                );
+                IDefaultCorkController.PoolCreationParams(marketParams, EXPECTED_WHITELIST_ENABLED);
 
             vm.prank(POOL_CREATOR_ADDRESS);
             defaultCorkController.createNewPool(poolCreationParams);

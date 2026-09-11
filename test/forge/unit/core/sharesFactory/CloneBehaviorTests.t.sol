@@ -129,7 +129,9 @@ contract SharesFactoryCloneBehaviorTests is BaseTest {
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
             rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
-            rateOracle: address(testOracle)
+            rateOracle: address(testOracle),
+            swapFeePercentage: DEFAULT_BASE_REDEMPTION_FEE,
+            unwindSwapFeePercentage: DEFAULT_REVERSE_SWAP_FEE
         });
     }
 

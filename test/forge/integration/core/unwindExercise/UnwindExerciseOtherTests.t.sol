@@ -196,7 +196,7 @@ contract UnwindExerciseOtherTests is BaseTest {
 
     function test_previewUnwindExercise_ShouldReturnCorrectAmounts() external {
         overridePrank(bravo);
-        _setUnwindSwapFee(defaultPoolId, 0);
+        _createPoolWithUnwindSwapFee(0);
 
         overridePrank(alice);
         uint256 referenceAssetsOut = 1 ether;
@@ -267,7 +267,7 @@ contract UnwindExerciseOtherTests is BaseTest {
 
     function test_maxUnwindExerciseOther_ShouldReturnCorrectAmount_WhenLessCstThanRespctiveReferenceAsset() external {
         overridePrank(bravo);
-        _setSwapFee(defaultPoolId, 0);
+        _createPoolWithSwapFee(0);
 
         overridePrank(alice);
         _deposit(defaultPoolId, 500 ether, alice);

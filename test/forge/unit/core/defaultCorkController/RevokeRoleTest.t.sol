@@ -46,17 +46,5 @@ contract RevokeRoleTest is BaseTest {
         assertFalse(defaultCorkController.hasRole(role, address(9)));
     }
 
-    function test_RevokeFeeManagerRoleEmitsMonitoringEvent() public {
-        bytes32 role = defaultCorkController.FEE_MANAGER_ROLE();
-        address oldFeeManager = makeAddr("oldFeeManager");
-        defaultCorkController.grantRole(role, oldFeeManager);
-
-        vm.expectEmit(true, true, true, true, address(defaultCorkController));
-        emit IAccessControl.RoleRevoked(role, oldFeeManager, adminUserAddress);
-        defaultCorkController.revokeRole(role, oldFeeManager);
-
-        assertFalse(defaultCorkController.hasRole(role, oldFeeManager));
-    }
-
     //-----------------------------------------------------------------------------------------------------//
 }

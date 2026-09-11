@@ -40,10 +40,7 @@ import {TransferHelper} from "contracts/libraries/TransferHelper.sol";
 /// @notice Implements functions for core contracts.
 library PoolLibrary {
     using SafeERC20 for IERC20;
-
-    ///   This denotes maximum fee allowed in contract.
-    ///   Here 1 ether = 1e18 so maximum 5% fee allowed.
-    uint256 internal constant MAX_ALLOWED_FEES = 5 ether;
+    uint256 internal constant FEE_DENOMINATOR = 100 ether;
 
     ///======================================================///
     ///================ INITIALIZATION FUNCTIONS ============///
@@ -54,10 +51,23 @@ library PoolLibrary {
     /// @param poolId The ID of the pool.
     /// @param market The market information.
     /// @param constraintRateAdapter The address of the constraint rate adapter.
+    /// @dev Fees are fixed at creation and must remain below the denominator used by fee arithmetic.
     function initialize(State storage self, MarketId poolId, Market calldata market, address constraintRateAdapter)
         external
     {
-        self.info = market;
+        require(market.swapFeePercentage < FEE_DENOMINATOR, IErrors.InvalidFees());
+        require(market.unwindSwapFeePercentage < FEE_DENOMINATOR, IErrors.InvalidFees());
+
+        self.info.collateralAsset = market.collateralAsset;
+        self.info.referenceAsset = market.referenceAsset;
+        self.info.expiryTimestamp = market.expiryTimestamp;
+        self.info.rateMin = market.rateMin;
+        self.info.rateMax = market.rateMax;
+        self.info.rateChangePerDayMax = market.rateChangePerDayMax;
+        self.info.rateChangeCapacityMax = market.rateChangeCapacityMax;
+        self.info.rateOracle = market.rateOracle;
+        self.pool.swapFeePercentage = market.swapFeePercentage;
+        self.pool.unwindSwapFeePercentage = market.unwindSwapFeePercentage;
         self.pool.balances.collateralAsset = CollateralAssetManager({_address: market.collateralAsset, locked: 0});
 
         // slither-disable-next-line reentrancy-no-eth
@@ -619,33 +629,6 @@ library PoolLibrary {
             maxNetCollateralAssets,
             self.pool.unwindSwapFeePercentage
         );
-    }
-
-    ///======================================================///
-    ///============= RATE & FEE RELATED FUNCTIONS ===========///
-    ///======================================================///
-
-    /// @notice Updates the swap fee percentage for the specified market.
-    /// @param self The state of the pool.
-    /// @param newFees New swap fee percentage with 18 decimal precision (e.g., 1% = 1e18).
-    function updateSwapFeePercentage(State storage self, uint256 newFees) external {
-        require(newFees <= MAX_ALLOWED_FEES, IErrors.InvalidFees());
-        self.pool.swapFeePercentage = newFees;
-    }
-
-    /// @notice Returns the current unwind swap fee percentage for the specified market.
-    /// @param self The state of the pool.
-    /// @return rate Current unwind swap fee percentage.
-    function unwindSwapFeePercentage(State storage self) external view returns (uint256 rate) {
-        rate = self.pool.unwindSwapFeePercentage;
-    }
-
-    /// @notice Updates the unwind swap fee percentage for the specified market.
-    /// @param self The state of the pool.
-    /// @param newFees New unwind swap fee percentage with 18 decimal precision (e.g., 1% = 1e18).
-    function updateUnwindSwapFeePercentage(State storage self, uint256 newFees) external {
-        require(newFees <= MAX_ALLOWED_FEES, IErrors.InvalidFees());
-        self.pool.unwindSwapFeePercentage = newFees;
     }
 
     ///======================================================///

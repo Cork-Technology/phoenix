@@ -12,7 +12,6 @@ contract DefaultCorkControllerSetUpTest is BaseTest {
     function test_DefaultCorkControllerRolesVariables() public {
         // Assert the roles variables are correct
         assertEq(defaultCorkController.CONFIGURATOR_ROLE(), keccak256("CONFIGURATOR_ROLE"));
-        assertEq(defaultCorkController.FEE_MANAGER_ROLE(), keccak256("FEE_MANAGER_ROLE"));
         assertEq(defaultCorkController.PAUSER_ROLE(), keccak256("PAUSER_ROLE"));
         assertEq(defaultCorkController.POOL_CREATOR_ROLE(), keccak256("POOL_CREATOR_ROLE"));
 
@@ -50,7 +49,6 @@ contract DefaultCorkControllerSetUpTest is BaseTest {
         assertEq(defaultCorkController.hasRole(defaultCorkController.PAUSER_ROLE(), pauser), true);
         assertEq(defaultCorkController.hasRole(defaultCorkController.POOL_CREATOR_ROLE(), bravo), true);
         assertEq(defaultCorkController.hasRole(defaultCorkController.CONFIGURATOR_ROLE(), bravo), true);
-        assertEq(defaultCorkController.hasRole(defaultCorkController.FEE_MANAGER_ROLE(), feeManager), true);
 
         // Assign Role Hierarchy correctly
         assertEq(
@@ -59,10 +57,6 @@ contract DefaultCorkControllerSetUpTest is BaseTest {
         );
         assertEq(
             defaultCorkController.getRoleAdmin(defaultCorkController.POOL_CREATOR_ROLE()),
-            defaultCorkController.DEFAULT_ADMIN_ROLE()
-        );
-        assertEq(
-            defaultCorkController.getRoleAdmin(defaultCorkController.FEE_MANAGER_ROLE()),
             defaultCorkController.DEFAULT_ADMIN_ROLE()
         );
     }

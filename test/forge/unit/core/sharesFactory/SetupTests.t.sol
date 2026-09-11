@@ -41,7 +41,9 @@ contract SetUpTests is Test {
             rateMax: 0,
             rateChangePerDayMax: 0,
             rateChangeCapacityMax: 0,
-            rateOracle: address(1)
+            rateOracle: address(1),
+            swapFeePercentage: 0,
+            unwindSwapFeePercentage: 0
         });
         MarketId poolId = MarketId.wrap(keccak256(abi.encode(marketObject)));
 

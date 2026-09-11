@@ -18,6 +18,8 @@ ignored_warnings_from = ["test", "script"]
 fs_permissions = [
     { access = "read-write", path = "./config/" },
     { access = "read-write", path = "./cache/" },
+    { access = "read", path = "./out/" },
+    { access = "read", path = "./out-production/" },
 ]
 
 # Production profile for deployment with optimized IR compilation
@@ -25,8 +27,14 @@ fs_permissions = [
 out = "out-production"
 test = "test"
 via_ir = true
-# Script and test harness runtimes exceed EIP-170; deployed runtimes are enforced in DeployProtocolScript.
+# Test harness runtimes exceed EIP-170; verify deployed runtime sizes separately.
 code_size_limit = 1000000
+# Safe fixtures use legacy compilation; Phoenix and its tests remain via-IR.
+additional_compiler_profiles = [{ name = "safe_legacy", via_ir = false }]
+compilation_restrictions = [
+    { paths = "test/forge/helpers/SafeArtifacts.sol", via_ir = false },
+    { paths = "contracts/**", via_ir = true },
+]
 
 [fmt]
 sort_imports = true

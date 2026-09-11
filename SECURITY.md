@@ -2,18 +2,19 @@
 
 ## Security Contact
 
-Security vulnerabilities should be disclosed to the project maintainers by email to **security@cork.tech**.
+Report suspected vulnerabilities privately to **security@cork.tech**. Do not disclose sensitive details in a public issue.
 
-## Are smart contract upgrades audited?
-Yes. Any changes to the code will undergo external review. Any smart contract upgrade will be audited.
+## Review scope
 
-## Bug Bounty
+A component version is not an audit certification. Review claims must identify the exact source version, contracts and deployed bytecode they cover. This source snapshot does not include an audit report establishing that the 1.4.0-rc.1 changes are audited and remediated. Reviews of dependencies do not establish assurance for this composition.
 
-Yes! Cork will shortly announce an updated bug bounty program for Phoenix.
+## Supported deployments
 
-## Audits 
+Consult the [Distribution manifests](https://github.com/Cork-Technology/distribution) for the support status and review level of the exact deployment you use. Source branch names do not establish deployment support.
 
-All audit reports are stored in the [audits](audits/) folder.
+## Bug bounty
+
+This file does not establish a funded bounty, reward maximum or assets-in-scope list. Confirm the applicable published program before relying on reward eligibility.
 
 ## Useful links
 

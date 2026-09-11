@@ -79,7 +79,9 @@ contract SharesFactoryTest is BaseTest {
             rateMin: DEFAULT_RATE_MIN,
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
-            rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX
+            rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
+            swapFeePercentage: DEFAULT_BASE_REDEMPTION_FEE,
+            unwindSwapFeePercentage: DEFAULT_REVERSE_SWAP_FEE
         });
         MarketId pool1Id = MarketId.wrap(keccak256(abi.encode(pool1)));
 
@@ -87,11 +89,7 @@ contract SharesFactoryTest is BaseTest {
 
         overridePrank(alice);
         testOracle.setRate(pool1Id, DEFAULT_ORACLE_RATE);
-        defaultCorkController.createNewPool(
-            IDefaultCorkController.PoolCreationParams(
-                pool1, DEFAULT_REVERSE_SWAP_FEE, DEFAULT_BASE_REDEMPTION_FEE, false
-            )
-        );
+        defaultCorkController.createNewPool(IDefaultCorkController.PoolCreationParams(pool1, false));
 
         (address principalToken, address swapToken) = corkPoolManager.shares(pool1Id);
         assertEq(principalToken, expectedPrincipalToken);
@@ -106,7 +104,9 @@ contract SharesFactoryTest is BaseTest {
             rateMin: DEFAULT_RATE_MIN,
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
-            rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX
+            rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
+            swapFeePercentage: DEFAULT_BASE_REDEMPTION_FEE,
+            unwindSwapFeePercentage: DEFAULT_REVERSE_SWAP_FEE
         });
         MarketId pool2Id = MarketId.wrap(keccak256(abi.encode(pool2)));
 
@@ -114,11 +114,7 @@ contract SharesFactoryTest is BaseTest {
 
         overridePrank(alice);
         testOracle.setRate(pool2Id, DEFAULT_ORACLE_RATE);
-        defaultCorkController.createNewPool(
-            IDefaultCorkController.PoolCreationParams(
-                pool2, DEFAULT_REVERSE_SWAP_FEE, DEFAULT_BASE_REDEMPTION_FEE, false
-            )
-        );
+        defaultCorkController.createNewPool(IDefaultCorkController.PoolCreationParams(pool2, false));
 
         // Get assets for second pool
         (address ct2, address ds2) = corkPoolManager.shares(pool2Id);
@@ -146,7 +142,9 @@ contract SharesFactoryTest is BaseTest {
                     rateMax: DEFAULT_RATE_MAX,
                     rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
                     rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
-                    rateOracle: address(0)
+                    rateOracle: address(0),
+                    swapFeePercentage: DEFAULT_BASE_REDEMPTION_FEE,
+                    unwindSwapFeePercentage: DEFAULT_REVERSE_SWAP_FEE
                 })
             })
         );
@@ -161,7 +159,9 @@ contract SharesFactoryTest is BaseTest {
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
             rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
-            rateOracle: address(testOracle)
+            rateOracle: address(testOracle),
+            swapFeePercentage: DEFAULT_BASE_REDEMPTION_FEE,
+            unwindSwapFeePercentage: DEFAULT_REVERSE_SWAP_FEE
         });
         MarketId poolId1 = MarketId.wrap(keccak256(abi.encode(pool1)));
 
@@ -170,11 +170,7 @@ contract SharesFactoryTest is BaseTest {
         overridePrank(alice);
         vm.expectEmit(true, false, false, true);
         emit ISharesFactory.SharesDeployed(address(collateralAsset), expectedPrincipalToken, expectedSwapToken);
-        defaultCorkController.createNewPool(
-            IDefaultCorkController.PoolCreationParams(
-                pool1, DEFAULT_REVERSE_SWAP_FEE, DEFAULT_BASE_REDEMPTION_FEE, false
-            )
-        );
+        defaultCorkController.createNewPool(IDefaultCorkController.PoolCreationParams(pool1, false));
 
         (address ct1, address ds1) = corkPoolManager.shares(poolId1);
         assertEq(ct1, expectedPrincipalToken);
@@ -224,7 +220,9 @@ contract SharesFactoryTest is BaseTest {
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
             rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
-            rateOracle: address(testOracle)
+            rateOracle: address(testOracle),
+            swapFeePercentage: DEFAULT_BASE_REDEMPTION_FEE,
+            unwindSwapFeePercentage: DEFAULT_REVERSE_SWAP_FEE
         });
 
         Market memory pool2 = Market({
@@ -235,7 +233,9 @@ contract SharesFactoryTest is BaseTest {
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
             rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
-            rateOracle: address(testOracle)
+            rateOracle: address(testOracle),
+            swapFeePercentage: DEFAULT_BASE_REDEMPTION_FEE,
+            unwindSwapFeePercentage: DEFAULT_REVERSE_SWAP_FEE
         });
 
         MarketId poolId1 = MarketId.wrap(keccak256(abi.encode(pool1)));
@@ -245,16 +245,8 @@ contract SharesFactoryTest is BaseTest {
         testOracle.setRate(poolId1, DEFAULT_ORACLE_RATE);
         testOracle.setRate(poolId2, DEFAULT_ORACLE_RATE);
 
-        defaultCorkController.createNewPool(
-            IDefaultCorkController.PoolCreationParams(
-                pool1, DEFAULT_REVERSE_SWAP_FEE, DEFAULT_BASE_REDEMPTION_FEE, false
-            )
-        );
-        defaultCorkController.createNewPool(
-            IDefaultCorkController.PoolCreationParams(
-                pool2, DEFAULT_REVERSE_SWAP_FEE, DEFAULT_BASE_REDEMPTION_FEE, false
-            )
-        );
+        defaultCorkController.createNewPool(IDefaultCorkController.PoolCreationParams(pool1, false));
+        defaultCorkController.createNewPool(IDefaultCorkController.PoolCreationParams(pool2, false));
 
         (address ct1, address ds1) = corkPoolManager.shares(poolId1);
         (address ct2, address ds2) = corkPoolManager.shares(poolId2);
@@ -273,7 +265,9 @@ contract SharesFactoryTest is BaseTest {
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
             rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
-            rateOracle: address(testOracle)
+            rateOracle: address(testOracle),
+            swapFeePercentage: DEFAULT_BASE_REDEMPTION_FEE,
+            unwindSwapFeePercentage: DEFAULT_REVERSE_SWAP_FEE
         });
         MarketId poolId1 = MarketId.wrap(keccak256(abi.encode(pool1)));
 
@@ -286,11 +280,7 @@ contract SharesFactoryTest is BaseTest {
         vm.expectEmit(true, true, true, true);
         emit ISharesFactory.SharesDeployed(address(collateralAsset), expectedPrincipalToken, expectedSwapToken);
 
-        defaultCorkController.createNewPool(
-            IDefaultCorkController.PoolCreationParams(
-                pool1, DEFAULT_REVERSE_SWAP_FEE, DEFAULT_BASE_REDEMPTION_FEE, false
-            )
-        );
+        defaultCorkController.createNewPool(IDefaultCorkController.PoolCreationParams(pool1, false));
     }
 
     function test_DeploySwapSharesShouldRevertWithInvalidERC20Metadata() external {
@@ -305,7 +295,9 @@ contract SharesFactoryTest is BaseTest {
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
             rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
-            rateOracle: address(testOracle)
+            rateOracle: address(testOracle),
+            swapFeePercentage: DEFAULT_BASE_REDEMPTION_FEE,
+            unwindSwapFeePercentage: DEFAULT_REVERSE_SWAP_FEE
         });
         MarketId poolId1 = MarketId.wrap(keccak256(abi.encode(pool1)));
 
@@ -314,11 +306,7 @@ contract SharesFactoryTest is BaseTest {
 
         // This should revert when trying to call symbol() on the invalid asset
         vm.expectRevert();
-        defaultCorkController.createNewPool(
-            IDefaultCorkController.PoolCreationParams(
-                pool1, DEFAULT_REVERSE_SWAP_FEE, DEFAULT_BASE_REDEMPTION_FEE, false
-            )
-        );
+        defaultCorkController.createNewPool(IDefaultCorkController.PoolCreationParams(pool1, false));
     }
 
     function test_DeployPoolSharesShouldBeDeterministicViaCreate2() external {
@@ -350,17 +338,15 @@ contract SharesFactoryTest is BaseTest {
             rateMin: DEFAULT_RATE_MIN,
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
-            rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX
+            rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
+            swapFeePercentage: DEFAULT_BASE_REDEMPTION_FEE,
+            unwindSwapFeePercentage: DEFAULT_REVERSE_SWAP_FEE
         });
         MarketId otherPoolId = MarketId.wrap(keccak256(abi.encode(otherPool)));
 
         overridePrank(alice);
         testOracle.setRate(otherPoolId, DEFAULT_ORACLE_RATE);
-        defaultCorkController.createNewPool(
-            IDefaultCorkController.PoolCreationParams(
-                otherPool, DEFAULT_REVERSE_SWAP_FEE, DEFAULT_BASE_REDEMPTION_FEE, false
-            )
-        );
+        defaultCorkController.createNewPool(IDefaultCorkController.PoolCreationParams(otherPool, false));
 
         createPool();
 
@@ -393,7 +379,9 @@ contract SharesFactoryTest is BaseTest {
             rateMin: DEFAULT_RATE_MIN,
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
-            rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX
+            rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
+            swapFeePercentage: DEFAULT_BASE_REDEMPTION_FEE,
+            unwindSwapFeePercentage: DEFAULT_REVERSE_SWAP_FEE
         });
     }
 
@@ -402,11 +390,7 @@ contract SharesFactoryTest is BaseTest {
         _poolId = MarketId.wrap(keccak256(abi.encode(poolParams)));
         overridePrank(alice);
         testOracle.setRate(_poolId, DEFAULT_ORACLE_RATE);
-        defaultCorkController.createNewPool(
-            IDefaultCorkController.PoolCreationParams(
-                poolParams, DEFAULT_REVERSE_SWAP_FEE, DEFAULT_BASE_REDEMPTION_FEE, false
-            )
-        );
+        defaultCorkController.createNewPool(IDefaultCorkController.PoolCreationParams(poolParams, false));
     }
 
     function _expectedPoolShareAddresses(Market memory, MarketId poolId)

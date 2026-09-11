@@ -52,10 +52,10 @@ contract UnpauseAllTest is BaseTest {
                     rateMin: 0.9 ether,
                     rateMax: 1.1 ether,
                     rateChangePerDayMax: 1 ether,
-                    rateChangeCapacityMax: 1 ether
+                    rateChangeCapacityMax: 1 ether,
+                    swapFeePercentage: 0,
+                    unwindSwapFeePercentage: 0
                 }),
-                unwindSwapFeePercentage: 0,
-                swapFeePercentage: 0,
                 isWhitelistEnabled: false
             })
         );

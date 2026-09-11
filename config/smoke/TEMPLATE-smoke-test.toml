@@ -36,9 +36,9 @@ expected_rate_change_capacity_max = 0
 
 # Oracle parameters
 expected_oracle_rate = 0
-expected_oracle_decimals = 18
+expected_oracle_decimals = 0
 
-# Fee percentages (in WAD, e.g., 1 ether = 100%)
+# Fee percentages use 18-decimal percentage units: 1 ether = 1%, 100 ether = 100%.
 expected_unwind_swap_fee_percentage = 0
 expected_swap_fee_percentage = 0
 

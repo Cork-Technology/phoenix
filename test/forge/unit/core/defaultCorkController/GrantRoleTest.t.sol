@@ -61,17 +61,6 @@ contract GrantRoleTest is BaseTest {
         assertFalse(defaultCorkController.hasRole(role, poolCreator));
     }
 
-    function test_GrantFeeManagerRoleEmitsMonitoringEvent() public {
-        bytes32 role = defaultCorkController.FEE_MANAGER_ROLE();
-        address newFeeManager = address(9);
-
-        vm.expectEmit(true, true, true, true, address(defaultCorkController));
-        emit IAccessControl.RoleGranted(role, newFeeManager, adminUserAddress);
-        defaultCorkController.grantRole(role, newFeeManager);
-
-        assertTrue(defaultCorkController.hasRole(role, newFeeManager));
-    }
-
     //-----------------------------------------------------------------------------------------------------//
 
     //----------------------------- Tests for grantRole DEFAULT_ADMIN_ROLE --------------------------------//

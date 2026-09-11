@@ -40,6 +40,18 @@ interface IPoolShare is IErrors {
     function initialize(MarketId marketId, string calldata tokenName, string calldata tokenSymbol, address initialOwner)
         external;
 
+    /// @notice Sets the allowance of `spender` over the tokens of `owner` from a signature.
+    /// @dev Same as the ERC-2612 permit but takes a byte-array signature (EIP-7597) so that
+    /// smart-contract owners such as Safes can grant allowances off-chain. An EOA owner is
+    /// checked with ECDSA. A contract owner is checked through ERC-1271 `isValidSignature`.
+    /// Both permit forms share one nonce sequence and one EIP-712 domain.
+    /// @param owner The token owner that signed the permit.
+    /// @param spender The address allowed to spend.
+    /// @param value The allowance amount.
+    /// @param deadline The timestamp after which the permit is no longer valid.
+    /// @param signature The owner signature over the ERC-2612 permit digest.
+    function permit(address owner, address spender, uint256 value, uint256 deadline, bytes calldata signature) external;
+
     /// @notice Designed for topic0 compatibility with ERC4626. Emitted by cPT address
     /// @param sender msg.sender
     /// @param owner Receiver of shares.

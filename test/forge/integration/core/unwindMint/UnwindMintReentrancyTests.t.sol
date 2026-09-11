@@ -43,11 +43,13 @@ contract UnwindMintReentrancyTests is BaseTest {
             rateMin: 0.9 ether,
             rateMax: 1.1 ether,
             rateChangePerDayMax: 0.0001 ether,
-            rateChangeCapacityMax: 0.001 ether
+            rateChangeCapacityMax: 0.001 ether,
+            swapFeePercentage: 0,
+            unwindSwapFeePercentage: 0
         });
 
         maliciousMarketId = corkPoolManager.getId(maliciousMarket);
-        defaultCorkController.createNewPool(IDefaultCorkController.PoolCreationParams(maliciousMarket, 0, 0, false));
+        defaultCorkController.createNewPool(IDefaultCorkController.PoolCreationParams(maliciousMarket, false));
 
         // Configure attacker
         attacker.setMarketId(maliciousMarketId);

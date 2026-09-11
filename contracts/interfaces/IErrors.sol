@@ -65,7 +65,7 @@ interface IErrors {
     /// @notice Thrown when user deposit with 0 amount.
     error ZeroDeposit();
 
-    /// @notice Thrown this error when fees are more than 5%.
+    /// @notice Thrown when a fee is not strictly below the 100% arithmetic denominator.
     error InvalidFees();
 
     /// @notice Thrown when trying to update rate with invalid rate.
@@ -102,4 +102,7 @@ interface IErrors {
 
     /// @notice Thrown when the whitelist is already disabled.
     error WhitelistAlreadyDisabled();
+
+    /// @notice Thrown when a permit signature is not valid for `owner`.
+    error InvalidPermitSignature(address owner);
 }

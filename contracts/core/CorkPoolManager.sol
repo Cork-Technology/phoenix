@@ -134,7 +134,9 @@ contract CorkPoolManager is
             poolParams.expiryTimestamp,
             poolParams.rateOracle,
             principalToken,
-            swapToken
+            swapToken,
+            poolParams.swapFeePercentage,
+            poolParams.unwindSwapFeePercentage
         );
     }
 
@@ -145,7 +147,19 @@ contract CorkPoolManager is
 
     /// @inheritdoc IPoolManager
     function market(MarketId poolId) external view returns (Market memory parameters) {
-        parameters = data().states[poolId].info;
+        State storage state = data().states[poolId];
+        parameters = Market({
+            collateralAsset: state.info.collateralAsset,
+            referenceAsset: state.info.referenceAsset,
+            expiryTimestamp: state.info.expiryTimestamp,
+            rateMin: state.info.rateMin,
+            rateMax: state.info.rateMax,
+            rateChangePerDayMax: state.info.rateChangePerDayMax,
+            rateChangeCapacityMax: state.info.rateChangeCapacityMax,
+            rateOracle: state.info.rateOracle,
+            swapFeePercentage: state.pool.swapFeePercentage,
+            unwindSwapFeePercentage: state.pool.unwindSwapFeePercentage
+        });
     }
 
     ///======================================================///
@@ -1061,25 +1075,7 @@ contract CorkPoolManager is
 
     /// @inheritdoc IPoolManager
     function unwindSwapFee(MarketId poolId) external view override returns (uint256 fees) {
-        fees = data().states[poolId].unwindSwapFeePercentage();
-    }
-
-    /// @inheritdoc IPoolManager
-    function updateSwapFeePercentage(MarketId poolId, uint256 newSwapFeePercentage) external {
-        _onlyInitialized(poolId);
-        _onlyCorkController();
-
-        PoolLibrary.updateSwapFeePercentage(data().states[poolId], newSwapFeePercentage);
-        emit SwapFeePercentageUpdated(poolId, newSwapFeePercentage);
-    }
-
-    /// @inheritdoc IPoolManager
-    function updateUnwindSwapFeePercentage(MarketId poolId, uint256 newUnwindSwapFeePercentage) external {
-        _onlyInitialized(poolId);
-        _onlyCorkController();
-        PoolLibrary.updateUnwindSwapFeePercentage(data().states[poolId], newUnwindSwapFeePercentage);
-
-        emit UnwindSwapFeePercentageUpdated(poolId, newUnwindSwapFeePercentage);
+        fees = data().states[poolId].pool.unwindSwapFeePercentage;
     }
 
     ///======================================================///

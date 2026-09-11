@@ -116,9 +116,13 @@ contract SwapTests is BaseTest {
         );
     }
 
-    function test_runtimeSwapFeeUpdateChangesSwapAccountingOnly() external __as(alice) __deposit(10 ether, alice) {
+    function test_poolSwapFeeAppliesToSwapAccountingOnly()
+        external
+        __as(alice)
+        __withSwapFee(2.5 ether)
+        __deposit(10 ether, alice)
+    {
         uint256 unwindFeeBefore = corkPoolManager.unwindSwapFee(defaultPoolId);
-        _setSwapFee(defaultPoolId, 2.5 ether);
         StateSnapshot memory before = _getStateSnapshot(alice, defaultPoolId);
 
         (,, uint256 previewFee) = corkPoolManager.previewSwap(defaultPoolId, 1 ether);
@@ -139,7 +143,7 @@ contract SwapTests is BaseTest {
         __approveAllTokens(bravo, address(corkPoolManager))
         __as(bravo)
     {
-        _setSwapFee(defaultPoolId, 99_999_900_001_000);
+        _createPoolWithSwapFee(99_999_900_001_000);
 
         corkPoolManager.mint(defaultPoolId, 100 ether, bravo);
 
@@ -518,14 +522,15 @@ contract SwapTests is BaseTest {
         corkPoolManager.swap(defaultPoolId, 0.5 ether, address(0));
     }
 
-    function test_swap_ShouldRevert_WhenRateOracleReturnsInvalidData() external __as(alice) __deposit(10 ether, alice) {
+    function test_swap_ShouldRevert_WhenRateOracleReturnsInvalidData()
+        external
+        __as(alice)
+        __withSwapFee(0)
+        __deposit(10 ether, alice)
+    {
         // Set oracle to return 0 rate (invalid)
         testOracle.setRate(defaultPoolId, 0);
 
-        overridePrank(bravo);
-        _setSwapFee(defaultPoolId, 0);
-
-        overridePrank(alice);
         (uint256 cstSharesIn, uint256 referenceAssetsIn, uint256 fee) =
             corkPoolManager.swap(defaultPoolId, 1 ether, alice);
 
@@ -534,14 +539,10 @@ contract SwapTests is BaseTest {
         assertEq(referenceAssetsIn, 1_111_111_111_111_111_112);
     }
 
-    function test_swap_EdgeCase_VerySmallAmount() external __as(alice) __deposit(1 ether, alice) {
-        overridePrank(bravo);
-        _setSwapFee(defaultPoolId, 0);
-
+    function test_swap_EdgeCase_VerySmallAmount() external __as(alice) __withSwapFee(0) __deposit(1 ether, alice) {
         // Test with 1 wei
         uint256 verySmallAmount = 1;
 
-        overridePrank(alice);
         (uint256 shares, uint256 compensation, uint256 fee) =
             corkPoolManager.swap(defaultPoolId, verySmallAmount, alice);
 

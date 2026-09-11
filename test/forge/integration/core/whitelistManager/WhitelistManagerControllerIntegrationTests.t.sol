@@ -108,18 +108,15 @@ contract WhitelistManagerControllerIntegrationTests is BaseTest {
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
             rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
-            rateOracle: address(testOracle)
+            rateOracle: address(testOracle),
+            swapFeePercentage: DEFAULT_BASE_REDEMPTION_FEE,
+            unwindSwapFeePercentage: DEFAULT_REVERSE_SWAP_FEE
         });
 
         overridePrank(bravo);
 
         defaultCorkController.createNewPool(
-            IDefaultCorkController.PoolCreationParams({
-                pool: newMarket,
-                unwindSwapFeePercentage: DEFAULT_REVERSE_SWAP_FEE,
-                swapFeePercentage: DEFAULT_BASE_REDEMPTION_FEE,
-                isWhitelistEnabled: true
-            })
+            IDefaultCorkController.PoolCreationParams({pool: newMarket, isWhitelistEnabled: true})
         );
 
         assertTrue(whitelistManager.isMarketWhitelistEnabled(newPoolId));
@@ -152,16 +149,13 @@ contract WhitelistManagerControllerIntegrationTests is BaseTest {
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
             rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
-            rateOracle: address(testOracle)
+            rateOracle: address(testOracle),
+            swapFeePercentage: DEFAULT_BASE_REDEMPTION_FEE,
+            unwindSwapFeePercentage: DEFAULT_REVERSE_SWAP_FEE
         });
 
         defaultCorkController.createNewPool(
-            IDefaultCorkController.PoolCreationParams({
-                pool: newMarket,
-                unwindSwapFeePercentage: DEFAULT_REVERSE_SWAP_FEE,
-                swapFeePercentage: DEFAULT_BASE_REDEMPTION_FEE,
-                isWhitelistEnabled: true
-            })
+            IDefaultCorkController.PoolCreationParams({pool: newMarket, isWhitelistEnabled: true})
         );
 
         assertTrue(whitelistManager.isMarketWhitelistEnabled(newPoolId));
@@ -179,16 +173,13 @@ contract WhitelistManagerControllerIntegrationTests is BaseTest {
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
             rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
-            rateOracle: address(testOracle)
+            rateOracle: address(testOracle),
+            swapFeePercentage: DEFAULT_BASE_REDEMPTION_FEE,
+            unwindSwapFeePercentage: DEFAULT_REVERSE_SWAP_FEE
         });
 
         defaultCorkController.createNewPool(
-            IDefaultCorkController.PoolCreationParams({
-                pool: newMarket,
-                unwindSwapFeePercentage: DEFAULT_REVERSE_SWAP_FEE,
-                swapFeePercentage: DEFAULT_BASE_REDEMPTION_FEE,
-                isWhitelistEnabled: false
-            })
+            IDefaultCorkController.PoolCreationParams({pool: newMarket, isWhitelistEnabled: false})
         );
 
         assertFalse(whitelistManager.isMarketWhitelistEnabled(newPoolId));

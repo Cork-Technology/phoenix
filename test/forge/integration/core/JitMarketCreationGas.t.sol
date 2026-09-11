@@ -7,7 +7,7 @@ import {ISharesFactory} from "contracts/interfaces/ISharesFactory.sol";
 import {BaseTest} from "test/forge/BaseTest.sol";
 
 contract JitMarketCreationGasTest is BaseTest {
-    // Pinned from origin/main@9bc470e with FOUNDRY_PROFILE=production using these exact call frames.
+    // Pre-clone gas baseline measured with the production profile and these exact call frames.
     uint256 internal constant CURRENT_MAIN_SHARE_DEPLOYMENT_GAS = 4_448_508;
     uint256 internal constant MAX_SHARE_DEPLOYMENT_GAS = (CURRENT_MAIN_SHARE_DEPLOYMENT_GAS * 15) / 100;
     uint256 internal constant CURRENT_MAIN_JIT_GAS = 5_102_378;
@@ -32,11 +32,7 @@ contract JitMarketCreationGasTest is BaseTest {
         testOracle.setRate(marketId, DEFAULT_ORACLE_RATE);
 
         uint256 gasBefore = gasleft();
-        defaultCorkController.createNewPool(
-            IDefaultCorkController.PoolCreationParams(
-                market, DEFAULT_REVERSE_SWAP_FEE, DEFAULT_BASE_REDEMPTION_FEE, false
-            )
-        );
+        defaultCorkController.createNewPool(IDefaultCorkController.PoolCreationParams(market, false));
         corkPoolManager.deposit(marketId, 1 ether, bravo);
         uint256 gasUsed = gasBefore - gasleft();
 
@@ -53,7 +49,9 @@ contract JitMarketCreationGasTest is BaseTest {
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
             rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
-            rateOracle: address(testOracle)
+            rateOracle: address(testOracle),
+            swapFeePercentage: DEFAULT_BASE_REDEMPTION_FEE,
+            unwindSwapFeePercentage: DEFAULT_REVERSE_SWAP_FEE
         });
     }
 }

@@ -21,7 +21,9 @@ contract CreateNewPoolTest is BaseTest {
             rateMin: 0,
             rateMax: 0,
             rateChangePerDayMax: 0,
-            rateChangeCapacityMax: 0
+            rateChangeCapacityMax: 0,
+            swapFeePercentage: 0,
+            unwindSwapFeePercentage: 0
         });
 
         vm.expectRevert(
@@ -29,7 +31,7 @@ contract CreateNewPoolTest is BaseTest {
                 "AccessControlUnauthorizedAccount(address,bytes32)", alice, defaultCorkController.POOL_CREATOR_ROLE()
             )
         );
-        defaultCorkController.createNewPool(IDefaultCorkController.PoolCreationParams(market, 0, 0, false));
+        defaultCorkController.createNewPool(IDefaultCorkController.PoolCreationParams(market, false));
     }
 
     function test_CreateNewPool_ShouldRevert_WhenAdminIsPaused() external __as(pauser) {
@@ -44,11 +46,13 @@ contract CreateNewPoolTest is BaseTest {
             rateMin: 0,
             rateMax: 0,
             rateChangePerDayMax: 0,
-            rateChangeCapacityMax: 0
+            rateChangeCapacityMax: 0,
+            swapFeePercentage: 0,
+            unwindSwapFeePercentage: 0
         });
 
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        defaultCorkController.createNewPool(IDefaultCorkController.PoolCreationParams(market, 0, 0, false));
+        defaultCorkController.createNewPool(IDefaultCorkController.PoolCreationParams(market, false));
     }
 
     function test_CreateNewPool_ShouldRevert_WhenRateMinIsZero() public {
@@ -60,11 +64,13 @@ contract CreateNewPoolTest is BaseTest {
             rateMin: 0,
             rateMax: 0,
             rateChangePerDayMax: 0,
-            rateChangeCapacityMax: 0
+            rateChangeCapacityMax: 0,
+            swapFeePercentage: 0,
+            unwindSwapFeePercentage: 0
         });
 
         vm.expectRevert(IErrors.InvalidParams.selector);
-        defaultCorkController.createNewPool(IDefaultCorkController.PoolCreationParams(market, 0, 0, false));
+        defaultCorkController.createNewPool(IDefaultCorkController.PoolCreationParams(market, false));
     }
 
     function test_CreateNewPool_ShouldWorkCorrectly() public {
@@ -72,6 +78,8 @@ contract CreateNewPoolTest is BaseTest {
         DummyWETH references = new DummyWETH();
 
         uint256 expiry = block.timestamp + 1;
+        uint256 unwindSwapFee = 1.5 ether;
+        uint256 swapFee = 2 ether;
 
         Market memory market = Market({
             collateralAsset: address(collateral),
@@ -81,17 +89,14 @@ contract CreateNewPoolTest is BaseTest {
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
             rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
-            rateOracle: address(testOracle)
+            rateOracle: address(testOracle),
+            swapFeePercentage: swapFee,
+            unwindSwapFeePercentage: unwindSwapFee
         });
 
         MarketId id = MarketId.wrap(keccak256(abi.encode(market)));
 
-        uint256 unwindSwapFee = 1.5 ether;
-        uint256 swapFee = 2 ether;
-
-        defaultCorkController.createNewPool(
-            IDefaultCorkController.PoolCreationParams(market, unwindSwapFee, swapFee, false)
-        );
+        defaultCorkController.createNewPool(IDefaultCorkController.PoolCreationParams(market, false));
 
         market = corkPoolManager.market(id);
 
@@ -116,15 +121,13 @@ contract CreateNewPoolTest is BaseTest {
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
             rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
-            rateOracle: address(testOracle)
+            rateOracle: address(testOracle),
+            swapFeePercentage: DEFAULT_BASE_REDEMPTION_FEE,
+            unwindSwapFeePercentage: DEFAULT_REVERSE_SWAP_FEE
         });
         uint256 gasBefore = gasleft();
 
-        defaultCorkController.createNewPool(
-            IDefaultCorkController.PoolCreationParams(
-                market, DEFAULT_REVERSE_SWAP_FEE, DEFAULT_BASE_REDEMPTION_FEE, false
-            )
-        );
+        defaultCorkController.createNewPool(IDefaultCorkController.PoolCreationParams(market, false));
 
         uint256 gasUsed = gasBefore - gasleft();
         assertLt(gasUsed, BASELINE_JIT_MARKET_CREATION_GAS * 30 / 100);

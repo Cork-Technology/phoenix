@@ -39,6 +39,8 @@ struct Market {
     uint256 rateChangePerDayMax; /// Maximum rate change allowance per day in absolute value. dictates how much the rate can change in a day.
     uint256 rateChangeCapacityMax; /// Maximum accumulated rate change allowed from rateChangePerDayMax. Every rate change will be capped at this value even If `rateChangePerDayMax` is larger than this.
     address rateOracle; /// The rate oracle address that would return the fundamental rates between the collateral and reference assets. The rates would be processed further by the constraint rate adapter using above constraints`.
+    uint256 swapFeePercentage; /// Swap/exercise fee in 18 decimals where 1e18 = 1%; fixed for the pool lifetime, part of the pool id, and strictly below 100%.
+    uint256 unwindSwapFeePercentage; /// Unwind fee in 18 decimals where 1e18 = 1%; fixed for the pool lifetime, part of the pool id, and strictly below 100%.
 }
 
 /// @title IPoolManager
@@ -109,6 +111,11 @@ interface IPoolManager is IErrors {
     /// @param referenceAsset The address of the reference asset.
     /// @param collateralAsset The address of the collateral asset.
     /// @param expiry The expiry interval of the Swap Token.
+    /// @param rateOracle The rate oracle address.
+    /// @param principalToken The cPT token address.
+    /// @param swapToken The cST token address.
+    /// @param swapFeePercentage Swap/exercise fee fixed at creation (1e18 = 1%).
+    /// @param unwindSwapFeePercentage UnwindSwap/unwindExercise fee fixed at creation (1e18 = 1%).
     event MarketCreated(
         MarketId indexed poolId,
         address indexed referenceAsset,
@@ -116,7 +123,9 @@ interface IPoolManager is IErrors {
         uint256 expiry,
         address rateOracle,
         address principalToken,
-        address swapToken
+        address swapToken,
+        uint256 swapFeePercentage,
+        uint256 unwindSwapFeePercentage
     );
 
     /// @notice Emitted when one or more market actions are paused or unpaused.
@@ -132,17 +141,7 @@ interface IPoolManager is IErrors {
     ///        Use `1` to indicate *paused* and `0` to indicate *unpaused* for each corresponding bit.
     event MarketActionPausedUpdate(MarketId indexed marketId, uint16 pausedAction);
 
-    // Fee & Configuration Events.
-    /// @notice Emitted when swapFeePercentage is updated.
-    /// @param poolId The Cork Pool id.
-    /// @param swapFeePercentage The new swapFeePercentage.
-    event SwapFeePercentageUpdated(MarketId indexed poolId, uint256 indexed swapFeePercentage);
-
-    /// @notice Emitted when an unwindSwapFee is updated for a given Cork Pool.
-    /// @param poolId The Cork Pool id.
-    /// @param unwindSwapFeePercentage The new unwindSwap fee.
-    event UnwindSwapFeePercentageUpdated(MarketId indexed poolId, uint256 indexed unwindSwapFeePercentage);
-
+    // Configuration Events.
     /// @notice Emitted when a treasury is set.
     /// @param treasury Address of treasury contract/address.
     event TreasurySet(address treasury);
@@ -883,39 +882,21 @@ interface IPoolManager is IErrors {
     // FEE MANAGEMENT
     // ========================================
 
-    /// @notice Returns the current swap fee percentage for the specified market.
-    /// @dev Fee applies to swap and exercise operations. Returned value uses 18 decimal precision
+    /// @notice Returns the swap fee percentage for the specified market.
+    /// @dev Fee applies to swap and exercise operations. The fee is fixed at pool creation and is part of
+    ///      the market parameters, so it cannot change afterwards. Returned value uses 18 decimal precision
     ///      where 1e18 represents 1% (100 basis points). Fees are collected by the protocol treasury.
     /// @param poolId The Cork pool identifier.
-    /// @return fees Current swap fee percentage with 18 decimal precision (1e18 = 1%).
-    /// @custom:reverts If market has not been initialized.
+    /// @return fees Swap fee percentage with 18 decimal precision (1e18 = 1%).
     function swapFee(MarketId poolId) external view returns (uint256 fees);
 
-    /// @notice Returns the current unwind swap fee percentage for the specified market.
-    /// @dev Fee applies to unwind swap and unwind exercise operations. Returned value uses 18 decimal
+    /// @notice Returns the unwind swap fee percentage for the specified market.
+    /// @dev Fee applies to unwind swap and unwind exercise operations. The fee is fixed at pool creation and
+    ///      is part of the market parameters, so it cannot change afterwards. Returned value uses 18 decimal
     ///      precision where 1e18 represents 1% (100 basis points). Fees are collected by the protocol treasury.
     /// @param poolId The Cork pool identifier.
-    /// @return fees Current unwind swap fee percentage with 18 decimal precision (1e18 = 1%).
-    /// @custom:reverts If market has not been initialized.
+    /// @return fees Unwind swap fee percentage with 18 decimal precision (1e18 = 1%).
     function unwindSwapFee(MarketId poolId) external view returns (uint256 fees);
-
-    /// @notice Updates the swap fee percentage for the specified market.
-    /// @dev Only callable by controller contract. Sets the fee percentage applied to swap and exercise
-    ///      operations. Fee must be provided with 18 decimal precision (e.g., 1% = 1e18).
-    /// @param poolId The Cork pool identifier.
-    /// @param newSwapFeePercentage New swap fee percentage with 18 decimal precision (e.g., 1% = 1e18)
-    /// @custom:reverts If caller is not the controller contract.
-    /// @custom:reverts If market has not been initialized.
-    function updateSwapFeePercentage(MarketId poolId, uint256 newSwapFeePercentage) external;
-
-    /// @notice Updates the unwind swap fee percentage for the specified market.
-    /// @dev Only callable by controller contract. Sets the fee percentage applied to unwind swap
-    ///      and unwind exercise operations. Fee must be provided with 18 decimal precision.
-    /// @param poolId The Cork pool identifier.
-    /// @param newUnwindSwapFeePercentage New unwind swap fee percentage with 18 decimal precision (e.g., 1% = 1e18)
-    /// @custom:reverts If caller is not the controller contract.
-    /// @custom:reverts If market has not been initialized.
-    function updateUnwindSwapFeePercentage(MarketId poolId, uint256 newUnwindSwapFeePercentage) external;
 
     // ========================================
     // MARKET MANAGEMENT & ADMINISTRATION
@@ -924,8 +905,10 @@ interface IPoolManager is IErrors {
     /// @notice Creates and initializes a new Cork Pool market with specified parameters.
     /// @dev Only callable by controller contract. Deploys new cPT shares and cST shares contracts, validates all
     ///      parameters, and initializes the market state. Validates expiry timestamp, asset addresses,
-    ///      oracle configuration, and decimal constraints (<= 18 decimals). Emits MarketCreated event.
-    /// @param poolParams Complete market configuration including asset addresses, expiry, oracle, and rate constraints.
+    ///      oracle configuration, decimal constraints (<= 18 decimals), and fee values strictly below 100%.
+    ///      Fees are fixed for the life of the pool. Emits MarketCreated event.
+    /// @param poolParams Complete market configuration including asset addresses, expiry, oracle, rate constraints,
+    ///        and fees.
     /// @custom:reverts If caller is not the controller contract.
     /// @custom:reverts If protocol is paused.
     /// @custom:reverts If market with same parameters already exists.
@@ -934,6 +917,7 @@ interface IPoolManager is IErrors {
     /// @custom:reverts If reference and collateral assets are the same.
     /// @custom:reverts If rate oracle address is zero.
     /// @custom:reverts If asset decimals exceed 18.
+    /// @custom:reverts If either fee is 100% or greater.
     function createNewPool(Market calldata poolParams) external;
 
     /// @notice Updates the pause status for specific operations in a given market.

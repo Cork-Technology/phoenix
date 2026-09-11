@@ -17,7 +17,7 @@ contract SafeUnwindExerciseTests is BaseTest {
         super.setUp();
 
         overridePrank(bravo);
-        _setUnwindSwapFee(defaultPoolId, 0);
+        _createPoolWithUnwindSwapFee(0);
 
         _deposit(defaultPoolId, 2000 ether, bravo);
 

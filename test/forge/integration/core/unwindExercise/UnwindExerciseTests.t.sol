@@ -133,13 +133,13 @@ contract UnwindExerciseTests is BaseTest {
         );
     }
 
-    function test_runtimeUnwindFeeUpdateChangesUnwindExerciseAccountingOnly()
+    function test_poolUnwindFeeAppliesToUnwindExerciseAccountingOnly()
         external
         __as(alice)
+        __withUnwindSwapFee(2.5 ether)
         __depositAndSwap(10 ether, 5 ether, alice)
     {
         uint256 swapFeeBefore = corkPoolManager.swapFee(defaultPoolId);
-        _setUnwindSwapFee(defaultPoolId, 2.5 ether);
         StateSnapshot memory before = _getStateSnapshot(alice, defaultPoolId);
 
         (,, uint256 previewFee) = corkPoolManager.previewUnwindExercise(defaultPoolId, 1 ether);
@@ -203,7 +203,7 @@ contract UnwindExerciseTests is BaseTest {
 
     function test_previewUnwindExercise_ShouldReturnCorrectAmounts() external {
         overridePrank(bravo);
-        _setUnwindSwapFee(defaultPoolId, 0);
+        _createPoolWithUnwindSwapFee(0);
 
         overridePrank(alice);
         uint256 cstSharesOut = 1 ether;

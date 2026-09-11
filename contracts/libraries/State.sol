@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.30;
 
-import {Market} from "contracts/interfaces/IPoolManager.sol";
-
 //             CCCCCCCCC  C
 //          CCCCCCCCCCC   C
 //       CCCCCCCCCCCCCC   C
@@ -25,10 +23,23 @@ import {Market} from "contracts/interfaces/IPoolManager.sol";
 //          CCCCCCCCCCC   C
 //              CCCCCCCCCCC
 
+/// @notice Storage representation of the original eight-field market configuration.
+/// @dev This layout must remain unchanged because existing proxy state stores these fields in slots 0 through 7.
+struct StoredMarket {
+    address collateralAsset;
+    address referenceAsset;
+    uint256 expiryTimestamp;
+    uint256 rateMin;
+    uint256 rateMax;
+    uint256 rateChangePerDayMax;
+    uint256 rateChangeCapacityMax;
+    address rateOracle;
+}
+
 /// @dev State structure.
-/// @dev As there are some fields that are used in Cork Pool but not in LV.
+/// @dev Field ordering is upgrade-sensitive and matches the legacy CorkPoolManager layout.
 struct State {
-    Market info;
+    StoredMarket info;
     /// @dev epoch => Shares(Principal Token + Swap Token)
     Shares shares;
     PoolState pool;

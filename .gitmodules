@@ -18,4 +18,7 @@
 	url = https://github.com/morpho-org/bundler3
 [submodule "lib/morpho-blue-oracles"]
 	path = lib/morpho-blue-oracles
-	url = git@github.com:morpho-org/morpho-blue-oracles
+	url = https://github.com/morpho-org/morpho-blue-oracles
+[submodule "lib/safe-smart-account"]
+	path = lib/safe-smart-account
+	url = https://github.com/safe-fndn/safe-smart-account.git

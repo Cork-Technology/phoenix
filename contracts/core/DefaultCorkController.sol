@@ -36,7 +36,6 @@ import {IWhitelistManager} from "contracts/interfaces/IWhitelistManager.sol";
 /// @notice DefaultCorkController contract for managing pairs and controlling Cork protocol
 contract DefaultCorkController is AccessControl, Ownable, Pausable, IDefaultCorkController {
     bytes32 public constant CONFIGURATOR_ROLE = keccak256("CONFIGURATOR_ROLE");
-    bytes32 public constant FEE_MANAGER_ROLE = keccak256("FEE_MANAGER_ROLE");
     bytes32 public constant POOL_CREATOR_ROLE = keccak256("POOL_CREATOR_ROLE");
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
     bytes32 public constant UNPAUSER_ROLE = keccak256("UNPAUSER_ROLE");
@@ -63,7 +62,6 @@ contract DefaultCorkController is AccessControl, Ownable, Pausable, IDefaultCork
 
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(CONFIGURATOR_ROLE, operationsManager);
-        _grantRole(FEE_MANAGER_ROLE, operationsManager);
         _grantRole(POOL_CREATOR_ROLE, operationsManager);
         _grantRole(WHITELIST_ADDER_ROLE, operationsManager);
         _grantRole(WHITELIST_REMOVER_ROLE, operationsManager);
@@ -118,28 +116,8 @@ contract DefaultCorkController is AccessControl, Ownable, Pausable, IDefaultCork
         if (params.isWhitelistEnabled) WHITELIST_MANAGER.activateMarketWhitelist(id);
         else WHITELIST_MANAGER.disableMarketWhitelist(id);
 
+        // fees live inside params.pool and are validated by the pool manager
         CORK_POOL_MANAGER.createNewPool(params.pool);
-
-        // update fees
-        CORK_POOL_MANAGER.updateUnwindSwapFeePercentage(id, params.unwindSwapFeePercentage);
-        CORK_POOL_MANAGER.updateSwapFeePercentage(id, params.swapFeePercentage);
-    }
-
-    ///======================================================///
-    ///================= FEE RELATED FUNCTIONS ==============///
-    ///======================================================///
-
-    /// @inheritdoc IDefaultCorkController
-    function updateUnwindSwapFeePercentage(MarketId id, uint256 newUnwindSwapFeePercentage)
-        external
-        onlyRole(FEE_MANAGER_ROLE)
-    {
-        CORK_POOL_MANAGER.updateUnwindSwapFeePercentage(id, newUnwindSwapFeePercentage);
-    }
-
-    /// @inheritdoc IDefaultCorkController
-    function updateSwapFeePercentage(MarketId id, uint256 newSwapFeePercentage) external onlyRole(FEE_MANAGER_ROLE) {
-        CORK_POOL_MANAGER.updateSwapFeePercentage(id, newSwapFeePercentage);
     }
 
     ///======================================================///

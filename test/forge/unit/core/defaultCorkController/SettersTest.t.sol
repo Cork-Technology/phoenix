@@ -63,6 +63,8 @@ contract SettersTest is BaseTest {
         DummyWETH references = new DummyWETH();
 
         uint256 expiry = block.timestamp + 1;
+        uint256 unwindSwapFee = 1.5 ether;
+        uint256 swapFee = 2 ether;
         Market memory market = Market({
             collateralAsset: address(collateral),
             referenceAsset: address(references),
@@ -71,15 +73,13 @@ contract SettersTest is BaseTest {
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
             rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
-            rateOracle: address(testOracle)
+            rateOracle: address(testOracle),
+            swapFeePercentage: swapFee,
+            unwindSwapFeePercentage: unwindSwapFee
         });
-        uint256 unwindSwapFee = 1.5 ether;
-        uint256 swapFee = 2 ether;
 
         vm.expectRevert(MockSharesFactory.MockSharesFactoryIsCalled.selector);
-        defaultCorkController.createNewPool(
-            IDefaultCorkController.PoolCreationParams(market, unwindSwapFee, swapFee, false)
-        );
+        defaultCorkController.createNewPool(IDefaultCorkController.PoolCreationParams(market, false));
     }
     //-----------------------------------------------------------------------------------------------------//
 }

@@ -8,6 +8,7 @@ import {
 import {
     ERC20PermitUpgradeable
 } from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
+import {SignatureChecker} from "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import {IPoolManager, Market, MarketId} from "contracts/interfaces/IPoolManager.sol";
 import {IPoolShare} from "contracts/interfaces/IPoolShare.sol";
 import {ISwapRate} from "contracts/interfaces/ISwapRate.sol";
@@ -41,6 +42,10 @@ import {ISwapRate} from "contracts/interfaces/ISwapRate.sol";
 contract PoolShare is ERC20BurnableUpgradeable, ERC20PermitUpgradeable, OwnableUpgradeable, ISwapRate, IPoolShare {
     MarketId public poolId;
     uint256 public issuedAt;
+
+    /// @dev Same typehash as the ERC-2612 permit so both permit forms share one nonce and domain.
+    bytes32 private constant PERMIT_TYPEHASH =
+        keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
 
     IPoolManager public immutable poolManager;
 
@@ -97,6 +102,22 @@ contract PoolShare is ERC20BurnableUpgradeable, ERC20PermitUpgradeable, OwnableU
     /// @dev The PoolShare permit domain has always used version 1.
     function _EIP712Version() internal pure override returns (string memory) {
         return "1";
+    }
+
+    /// @inheritdoc IPoolShare
+    function permit(address owner, address spender, uint256 value, uint256 deadline, bytes calldata signature)
+        external
+    {
+        // forge-lint: disable-next-line(block-timestamp)
+        require(block.timestamp <= deadline, ERC2612ExpiredSignature(deadline));
+        require(owner != address(0), ZeroAddress());
+
+        bytes32 structHash = keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, _useNonce(owner), deadline));
+        bytes32 digest = _hashTypedDataV4(structHash);
+
+        require(SignatureChecker.isValidSignatureNow(owner, digest, signature), InvalidPermitSignature(owner));
+
+        _approve(owner, spender, value);
     }
 
     ///======================================================///

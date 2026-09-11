@@ -104,7 +104,9 @@ contract CorkPoolManagerAccessControlTests is BaseTest {
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
             rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
-            rateOracle: address(testOracle)
+            rateOracle: address(testOracle),
+            swapFeePercentage: 0,
+            unwindSwapFeePercentage: 0
         });
 
         vm.expectRevert(bytes4(keccak256("InvalidExpiry()")));
@@ -121,7 +123,9 @@ contract CorkPoolManagerAccessControlTests is BaseTest {
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
             rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
-            rateOracle: address(testOracle)
+            rateOracle: address(testOracle),
+            swapFeePercentage: 0,
+            unwindSwapFeePercentage: 0
         });
 
         vm.expectRevert();
@@ -138,7 +142,9 @@ contract CorkPoolManagerAccessControlTests is BaseTest {
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
             rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
-            rateOracle: address(testOracle)
+            rateOracle: address(testOracle),
+            swapFeePercentage: 0,
+            unwindSwapFeePercentage: 0
         });
 
         vm.expectRevert();
@@ -155,7 +161,9 @@ contract CorkPoolManagerAccessControlTests is BaseTest {
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
             rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
-            rateOracle: address(testOracle)
+            rateOracle: address(testOracle),
+            swapFeePercentage: 0,
+            unwindSwapFeePercentage: 0
         });
 
         vm.expectRevert(bytes4(keccak256("InvalidAddress()")));
@@ -172,7 +180,9 @@ contract CorkPoolManagerAccessControlTests is BaseTest {
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
             rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
-            rateOracle: address(0)
+            rateOracle: address(0),
+            swapFeePercentage: 0,
+            unwindSwapFeePercentage: 0
         });
 
         vm.expectRevert(bytes4(keccak256("ZeroAddress()")));
@@ -191,7 +201,9 @@ contract CorkPoolManagerAccessControlTests is BaseTest {
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
             rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
-            rateOracle: address(testOracle)
+            rateOracle: address(testOracle),
+            swapFeePercentage: 0,
+            unwindSwapFeePercentage: 0
         });
 
         vm.expectRevert(bytes4(keccak256("InvalidParams()")));
@@ -210,7 +222,9 @@ contract CorkPoolManagerAccessControlTests is BaseTest {
             rateMax: DEFAULT_RATE_MAX,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
             rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
-            rateOracle: address(testOracle)
+            rateOracle: address(testOracle),
+            swapFeePercentage: 0,
+            unwindSwapFeePercentage: 0
         });
 
         vm.expectRevert(bytes4(keccak256("InvalidParams()")));
@@ -227,7 +241,9 @@ contract CorkPoolManagerAccessControlTests is BaseTest {
             rateMax: DEFAULT_RATE_MIN,
             rateChangePerDayMax: DEFAULT_RATE_CHANGE_PER_DAY_MAX,
             rateChangeCapacityMax: DEFAULT_RATE_CHANGE_CAPACITY_MAX,
-            rateOracle: address(testOracle)
+            rateOracle: address(testOracle),
+            swapFeePercentage: 0,
+            unwindSwapFeePercentage: 0
         });
 
         vm.expectRevert(bytes4(keccak256("InvalidParams()")));

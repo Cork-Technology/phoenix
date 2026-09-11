@@ -1,0 +1,38 @@
+name: Test Suite
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "release/**"
+      - "public-release/**"
+
+permissions:
+  contents: read
+
+jobs:
+  forge-test:
+    runs-on: ubuntu-latest
+    name: Forge Test Suite (${{ matrix.profile }})
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [default, production]
+    env:
+      FOUNDRY_PROFILE: ${{ matrix.profile }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.4.4
+      - name: Check Solidity Formatting
+        run: forge fmt --check
+      - name: Build
+        run: forge build
+      - name: Run Tests
+        run: forge test -vvv

@@ -1,8 +1,6 @@
 @openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
 @openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
-ds-test/=lib/openzeppelin-contracts-upgradeable/lib/forge-std/lib/ds-test/src/
 erc4626-tests/=lib/openzeppelin-contracts-upgradeable/lib/erc4626-tests/
-forge-gas-snapshot/=lib/Cork-Hook/lib/v4-periphery/lib/v4-core/lib/forge-gas-snapshot/src/
 forge-std/=lib/forge-std/src/
 permit2=lib/permit2/
 BokkyPooBahsDateTimeLibrary/=lib/BokkyPooBahsDateTimeLibrary/contracts/
@@ -10,3 +8,4 @@ bundler3/=lib/bundler3/src/
 bundler3-oz/=lib/bundler3/lib/openzeppelin-contracts/contracts/
 bundler3-permit2/=lib/bundler3/lib/permit2/src/
 @morpho-oracle/=lib/morpho-blue-oracles/src/morpho-chainlink
+safe-contracts/=lib/safe-smart-account/contracts/

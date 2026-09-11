@@ -36,12 +36,10 @@ interface IDefaultCorkController is IErrors {
     event TreasurySet(address treasury);
 
     /// @notice Parameters for creating a new pool.
-    /// This includes initializing the fee. Although it can still be modified later
-    /// all fees are percentage in 18 decimals(e.g. 1% = 1e18).
+    /// The swap and unwindSwap fees are part of `pool` (18 decimals, 1e18 = 1%). They are fixed at
+    /// creation, form part of the pool id, and cannot be changed later.
     struct PoolCreationParams {
         Market pool;
-        uint256 unwindSwapFeePercentage; // UnwindSwap/unwindExercise fee percentage in 18 decimals (e.g. 1% = 1e18).
-        uint256 swapFeePercentage; // Swap/exercise fee percentage in 18 decimals (e.g. 1% = 1e18).
         bool isWhitelistEnabled; // Is whitelist enabled for the new pool.
     }
 
@@ -54,20 +52,9 @@ interface IDefaultCorkController is IErrors {
     function setSharesFactory(address _sharesFactory) external;
 
     /// @dev Initialize cork pool.
-    /// @dev The caller must hold POOL_CREATOR_ROLE and selects both initial fee values.
+    /// @dev The caller must hold POOL_CREATOR_ROLE and selects both fee values inside `params.pool`.
     /// @param params Parameters for the new pool.
     function createNewPool(PoolCreationParams calldata params) external;
-
-    /// @notice Updates fee for pool unwindSwap.
-    /// @dev The caller must hold FEE_MANAGER_ROLE.
-    /// @param id ID of Cork Pool.
-    /// @param newUnwindSwapFeePercentage New value of unwindSwap fees, make sure it has 18 decimals(e.g 1% = 1e18)
-    function updateUnwindSwapFeePercentage(MarketId id, uint256 newUnwindSwapFeePercentage) external;
-
-    /// @notice Updates base swap fee percentage.
-    /// @dev The caller must hold FEE_MANAGER_ROLE.
-    /// @param newSwapFeePercentage New value of fees, make sure it has 18 decimals(e.g 1% = 1e18)
-    function updateSwapFeePercentage(MarketId id, uint256 newSwapFeePercentage) external;
 
     /// @notice Pause this contract.
     function pause() external;

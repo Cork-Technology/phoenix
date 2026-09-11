@@ -38,7 +38,7 @@ Each smoke test config file contains:
 - `expected_whitelisted_addresses` - Array of addresses expected to be whitelisted
 
 **Market Specifics:**
-- `fork_block_number` - Block number to fork at (use env var `${FORK_BLOCK_NUMBER}`)
+- `fork_block_number` - Explicit block number to fork at in the TOML configuration
 - `acceptable_decimals_max` - Maximum acceptable token decimals (typically 18)
 - `acceptable_decimals_min` - Minimum acceptable token decimals (typically 6)
 - `expected_expiry_timestamp` - Expected market expiry timestamp
@@ -55,9 +55,7 @@ Each smoke test config file contains:
 
 ### 2. Environment Variables
 
-The config uses environment variables for dynamic values:
-- `${FORK_URL}` - RPC URL for the fork
-- `${FORK_BLOCK_NUMBER}` - Block number to fork at
+The template expands `${FORK_URL}` as the RPC URL. Set `fork_block_number` explicitly in your local configuration. All `expected_*` values in the template are neutral placeholders, including oracle decimals; populate them from the deployment being checked. Fee percentages use 18-decimal percentage units (`1 ether = 1%`).
 
 ## Running Smoke Tests
 
@@ -82,4 +80,4 @@ forge test --match-path test/forge/smoke/MarketValidationTests.t.sol -vvv
 
 ## Template
 
-See `TEMPLATE-smoke-test.toml` for a complete template with default values.
+See [TEMPLATE-smoke-test.toml](TEMPLATE-smoke-test.toml) for the configuration shape. Its zero values are not a runnable market and must not be treated as deployment facts.

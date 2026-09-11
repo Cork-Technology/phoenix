@@ -2,6 +2,12 @@
 
 Cork is a programmable risk layer for on-chain assets such as vault tokens, yield-bearing stablecoins, and liquid (re)staking tokens.
 
+## Version and compatibility
+
+This tree is labelled **1.4.0-rc.1**. It is **not ABI-compatible with 1.3.0-rc.1**: market tuples and pool identifiers include immutable creation-time fees; fee setters and their events are removed. Regenerate bindings and indexer event signatures rather than treating this as a drop-in upgrade. See the [changelog](CHANGELOG.md) for migration details.
+
+The package version identifies this source tree; contracts do not expose a component `version()` getter. EIP-712 domain version `1` is a separate signing identifier. No deployment equivalence or audit status is implied by the package label.
+
 ## Table of Contents
 
 - [Glossary](#glossary)
@@ -146,10 +152,10 @@ It's important to note that while you can interact with `CorkPoolManager` direct
 | Contract | Role | Key Responsibilities |
 |----------|------|---------------------|
 | **CorkPoolManager** | Singleton pool management | Pool creation, deposits/mints, withdrawals/redemptions, swaps/exercise, and their unwind operations |
-| **DefaultCorkController** | Protocol governance & administration | Pool authorization, fee management, pause controls, whitelist access management, treasury operations |
+| **DefaultCorkController** | Protocol governance & administration | Pool authorization (fees are set once at pool creation and cannot change), pause controls, whitelist access management, treasury operations |
 | **WhitelistManager** | Access control management | Global and market-specific whitelisting mechanism |
 | **ConstraintRateAdapter** | Rate protection & oracle safety | Rate clamping with configurable constraints, protection against oracle manipulation and extreme volatility |
-| **PoolShare** | Token implementation | ERC20 tokens (cPT & cST) with EIP-2612 permit support, burnable functionality, and ERC4626 compatibility |
+| **PoolShare** | Token implementation | ERC20 tokens (cPT & cST) with EIP-2612 and EIP-7597 (ERC-1271 contract signer) permit support, burnable functionality, and ERC4626 compatibility |
 | **SharesFactory** | Token deployment | Deploys cPT and cST token pairs per market with consistent configuration |
 | **CorkPoolManagerStorage** | State management | Defines protocol state structures and storage layout |
 
@@ -167,9 +173,9 @@ All interfaces are located in [this folder](contracts/interfaces/)
 
 ## Deployment Addresses
 
-Cork Protocol uses the [Safe CREATE2 Deployer](https://github.com/safe-global/safe-singleton-factory) to ensure consistent contract addresses across all chains.
+The build configuration supports the [Safe Singleton Factory](https://github.com/safe-global/safe-singleton-factory). A deterministic deployment mechanism alone does not prove that addresses or runtime bytecode match across chains.
 
-Deployed addresses are published per version in this repository's [Releases](https://github.com/Cork-Technology/phoenix/releases). `main` tracks the latest stable release; release candidates live on `release/*` branches and are tagged as pre-releases. Take addresses from the release matching the exact version you integrate against.
+Per-version deployment records belong in this repository's [Releases](https://github.com/Cork-Technology/phoenix/releases); consult [docs.cork.tech](https://docs.cork.tech/) for the current living set. `main` is the stable source branch and candidates use `release/*`. A GitHub pre-release flag is not an audit or production-readiness certification. Use the exact version and chain record applicable to your integration.
 
 ### External Dependencies
 
@@ -185,13 +191,15 @@ Deployed addresses are published per version in this repository's [Releases](htt
 Requires [Foundry](https://getfoundry.sh/).
 
 ```
-git clone --recurse-submodules https://github.com/Cork-Technology/phoenix.git
+git clone --branch v1.4.0-rc.1 --recurse-submodules https://github.com/Cork-Technology/phoenix.git
 cd phoenix
 forge build
 forge test
 ```
 
-Dependency revisions are pinned in [foundry.lock](foundry.lock). Most tests run without any configuration. The smoke tests are skipped unless `SMOKE_CONFIG_PATH` is set and need an RPC endpoint — see [.env.example](.env.example).
+Dependency revisions are pinned in [foundry.lock](foundry.lock). The smoke tests are skipped unless `SMOKE_CONFIG_PATH` names a populated configuration and need an RPC endpoint — see the [smoke configuration guide](config/smoke/README.md). Run the production profile with `FOUNDRY_PROFILE=production forge test`.
+
+The production profile compiles Phoenix and its test harnesses via IR. The pinned Safe implementation and fallback handler used by permit tests are compiled separately without IR because their assembly does not compile under the selected via-IR pipeline. Tests deploy those real artifacts through ABI-only interfaces; no Safe mock or skipped permit coverage is substituted. Build artifact directories have read-only test permissions.
 
 ## Testing
 
@@ -236,7 +244,7 @@ We leverage Permit2 for **signature-based token approvals**, eliminating the nee
 
 ## Audits
 
-Audit snapshots and fix rounds are tagged in this repository's [Releases](https://github.com/Cork-Technology/phoenix/releases).
+Review claims apply only to the source and deployment scope identified by their reports. This source snapshot includes no audit report establishing that its changes are audited and remediated; see [SECURITY.md](SECURITY.md).
 
 ## Security
 
