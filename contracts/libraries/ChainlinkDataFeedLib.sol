@@ -62,3 +62,5 @@ library ChainlinkDataFeedLib {
         return feed.decimals();
     }
 }
+
+// Official Author Patch (#1)
